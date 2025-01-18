@@ -1,6 +1,6 @@
 class MessageContextWrongTypeError(RuntimeError):
     def __init__(self, *, class_name: str):
-        super().__init__(f"Context must be of type {class_name}.Context")
+        super().__init__(f'Context must be of type "{class_name}.Context"')
 
 
 class RegisterWrongMessageTypeError(TypeError):
