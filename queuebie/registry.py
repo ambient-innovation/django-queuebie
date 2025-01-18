@@ -5,7 +5,8 @@ from functools import wraps
 
 from django.conf import settings
 
-from apps.core.event_loop.messages import Command, Event
+from queuebie.exceptions import RegisterWrongMessageTypeError
+from queuebie.messages import Command, Event
 
 
 class MessageRegistry:
@@ -19,14 +20,11 @@ class MessageRegistry:
         self.command_dict: dict = {}
         self.event_dict: dict = {}
 
-    def register_command(self, command: Command):  # noqa: PBR001, PBR002
-        def decorator(decoratee):  # noqa: PBR001, PBR002
+    def register_command(self, command: Command):
+        def decorator(decoratee):
             # Ensure that registered message is of correct type
             if not (issubclass(command, Command)):
-                raise TypeError(
-                    f'Trying to register message function of wrong type: "{command.__name__}" '
-                    f'on handler "{decoratee.__name__}".'
-                )
+                raise RegisterWrongMessageTypeError(message_name=command.__name__, decoratee_name=decoratee.__name__)
 
             # Add decoratee to dependency list
             if command not in self.command_dict:
@@ -39,14 +37,11 @@ class MessageRegistry:
 
         return decorator
 
-    def register_event(self, event: Event):  # noqa: PBR001, PBR002
-        def decorator(decoratee):  # noqa: PBR001, PBR002
+    def register_event(self, event: Event):
+        def decorator(decoratee):
             # Ensure that registered message is of correct type
             if not (issubclass(event, Event)):
-                raise TypeError(
-                    f'Trying to register message function of wrong type: "{event.__name__}" '
-                    f'on handler "{decoratee.__name__}".'
-                )
+                raise RegisterWrongMessageTypeError(message_name=event.__name__, decoratee_name=decoratee.__name__)
 
             # Add decoratee to dependency list
             if event not in self.event_dict:
@@ -59,9 +54,9 @@ class MessageRegistry:
 
         return decorator
 
-    def inject(self, func):  # noqa: PBR001, PBR002
+    def inject(self, func):
         @wraps(func)
-        def decorated(*args, **kwargs):  # noqa: PBR002
+        def decorated(*args, **kwargs):
             new_args = (*args, self.event_dict)
             return func(*new_args, **kwargs)
 
@@ -74,7 +69,7 @@ class MessageRegistry:
         if len(self.command_dict) + len(self.event_dict) > 0:
             return
 
-        # Import all notification.pys in all installed apps to trigger notification class registration via decorator
+        # Import all messages in all installed apps to trigger notification class registration via decorator
         for app in settings.INSTALLED_APPS:
             if app[:5] != "apps.":
                 continue

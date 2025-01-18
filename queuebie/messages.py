@@ -2,14 +2,17 @@ import inspect
 import uuid
 from dataclasses import dataclass
 
+from queuebie.exceptions import MessageContextWrongTypeError
 
+
+# TODO: do we want to make it inherit from ABC?
 class Message:
     uuid = str
     Context: dataclass
 
     @dataclass(kw_only=True)
     class Context:
-        def __init__(self):
+        def __init__(self, **kwargs):
             raise NotImplementedError
 
     @classmethod
@@ -21,10 +24,10 @@ class Message:
             }
         )
 
-    def __init__(self, context: "Message.Context"):  # noqa: PBR001
+    def __init__(self, context: "Message.Context"):
         self.uuid = str(uuid.uuid4())
         if type(context) is not self.Context:
-            raise RuntimeError(f"Context must be of type {self.__class__.__name__}.Context")
+            raise MessageContextWrongTypeError(class_name=self.__class__.__name__)
         self.Context = context
 
     def __str__(self) -> str:

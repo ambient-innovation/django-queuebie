@@ -6,6 +6,7 @@
 [![Documentation Status](https://readthedocs.org/projects/django-queuebie/badge/?version=latest)](https://django-queuebie.readthedocs.io/en/latest/?badge=latest)
 
 write me
+
 * [PyPI](https://pypi.org/project/django-queuebie/)
 * [GitHub](https://github.com/ambient-innovation/django-queuebie)
 * [Full documentation](https://django-queuebie.readthedocs.io/en/latest/index.html)
@@ -15,6 +16,7 @@ write me
 ## Features
 
 write me
+
 ## Installation
 
 - Install the package via pip:
