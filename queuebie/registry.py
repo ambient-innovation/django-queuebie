@@ -70,6 +70,7 @@ class MessageRegistry:
             return
 
         # Import all messages in all installed apps to trigger notification class registration via decorator
+        # todo: can we not do this on every request?
         for app in settings.INSTALLED_APPS:
             if app[:5] != "apps.":
                 continue
