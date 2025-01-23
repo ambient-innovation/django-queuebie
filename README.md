@@ -64,7 +64,7 @@ write me
 
 - Check coverage
   ````
-  coverage run -m pytest --ds settingstests
+  coverage run -m pytest --ds settings tests
   coverage report -m
   ````
 

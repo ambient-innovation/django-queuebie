@@ -1,12 +1,15 @@
-import inspect
+import abc
 import uuid
 from dataclasses import dataclass
 
 from queuebie.exceptions import MessageContextWrongTypeError
 
 
-# TODO: do we want to make it inherit from ABC?
-class Message:
+class Message(abc.ABC):
+    """
+    Base class for all commands and events.
+    """
+
     uuid = str
     Context: dataclass
 
@@ -15,17 +18,11 @@ class Message:
         def __init__(self, **kwargs):
             raise NotImplementedError
 
-    @classmethod
-    def _from_dict_to_dataclass(cls, *, context_data: dict) -> "Message.Context":
-        return cls.Context(
-            **{
-                key: (context_data[key] if val.default == val.empty else context_data.get(key, val.default))
-                for key, val in inspect.signature(cls.Context).parameters.items()
-            }
-        )
+    def __init__(self, context: "Message.Context") -> None:
+        super().__init__()
 
-    def __init__(self, context: "Message.Context"):
         self.uuid = str(uuid.uuid4())
+
         if type(context) is not self.Context:
             raise MessageContextWrongTypeError(class_name=self.__class__.__name__)
         self.Context = context
@@ -35,8 +32,14 @@ class Message:
 
 
 class Command(Message):
-    pass
+    """
+    Commands are messages which prompt the system to do something.
+    Are always written in present tense: "CreateInvoice".
+    """
 
 
 class Event(Message):
-    pass
+    """
+    Events are the results of a command.
+    Are always written in past tense: "InvoiceCreated".
+    """

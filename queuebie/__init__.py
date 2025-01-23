@@ -8,7 +8,7 @@ from queuebie.registry import MessageRegistry
 # TODO: is this thread-safe? does it matter? -> prove with unit-tests
 message_registry = MessageRegistry()
 
-# todo:
+# TODO: tasks for v1.0
 #  -> docs with examples
 #  -> tests
 #  -> fix all code todos
