@@ -18,7 +18,8 @@ class MessageRegistry:
 
     # TODO: build a system check that validates that in handlers registered message (command/event) match the context
     #  -> maybe we already have this in the autodiscover
-    _instance = None
+    # todo: Command-Handler have to create Event - as a check?
+    _instance: "MessageRegistry" = None
 
     def __init__(self):
         self.command_dict: dict = {}
@@ -81,6 +82,29 @@ class MessageRegistry:
         # Import all messages in all installed apps to trigger notification class registration via decorator
         # TODO: can we not do this on every request?
         #  -> use the django cache -> do i have to handle if there is none?
+        #  -> need to be able to kill the cache when the files change -> python file metadata?
+        #  --> but then i have to go over all files, too
+        #  dont overengineer. ich mach n MC, welches das putzt. wenn du n deployment unabhängigen cache verwendest,
+        #  baust du das in die CI ein. fertig
+
+        """
+        def calculate_metadata_checksum(directory, file_extension=".py"):
+            hasher = hashlib.sha256()
+
+            for root, _, files in os.walk(directory):
+                for file in sorted(files):
+                    if file.endswith(file_extension):
+                        file_path = os.path.join(root, file)
+                        # Verwende Dateipfad und Änderungszeitpunkt
+                        file_stats = os.stat(file_path)
+                        hasher.update(f"{file_path}{file_stats.st_mtime}".encode("utf-8"))
+
+            return hasher.hexdigest()
+
+        checksum = calculate_metadata_checksum(".")
+        print(f"Metadata Checksum: {checksum}")
+        """
+
         for app in settings.INSTALLED_APPS:
             if app[:5] != "apps.":
                 continue
