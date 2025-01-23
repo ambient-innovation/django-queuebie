@@ -13,8 +13,9 @@ class MessageRegistry:
     """
     Singleton for registering messages classes in.
     """
+    # todo: maybe use a generic solution in the toolbox, where you have namespaces what you want to register so I
+    #  can remove the notification registry, too
 
-    # TODO: this is not a proper singleton...
     # TODO: build a system check that validates that in handlers registered message (command/event) match the context
     #  -> maybe we already have this in the autodiscover
     _instance = None
@@ -79,10 +80,7 @@ class MessageRegistry:
 
         # Import all messages in all installed apps to trigger notification class registration via decorator
         # TODO: can we not do this on every request?
-        #  -> what if I create a file the first time it runs, once the pod restarts, the file is gone again?
-        #  -> management command for people who use persistent storages (not docker)
-        #  -> fallback to just parse data and return it if the OS complains for some reason
-        #  -> filename .[package]-autodiscover?
+        #  -> use the django cache -> do i have to handle if there is none?
         for app in settings.INSTALLED_APPS:
             if app[:5] != "apps.":
                 continue
