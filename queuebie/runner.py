@@ -11,6 +11,10 @@ def handle_message(message_list: Message | list[Message]):
     else:
         queue = [message_list]
 
+    for message in queue:
+        if not isinstance(message, (Command, Event)):
+            raise InvalidMessageTypeError(class_name=message.__class__.__name__)
+
     # Run auto-registry
     from queuebie import message_registry
 
