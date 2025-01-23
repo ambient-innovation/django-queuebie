@@ -29,14 +29,10 @@ jobs:
     runs-on: ubuntu-24.04
     strategy:
       matrix:
-        python-version: ['3.9', '3.10', '3.11', '3.12', '3.13', ]
+        python-version: ['3.10', '3.11', '3.12', '3.13', ]
         django-version: ['42', '50', '51', ]
 
         exclude:
-          - python-version: '3.9'
-            django-version: 50
-          - python-version: '3.9'
-            django-version: 51
           - python-version: "3.13"
             django-version: 42
           - python-version: "3.13"
