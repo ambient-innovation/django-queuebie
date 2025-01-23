@@ -211,7 +211,7 @@ deps =
     django51: Django==5.1.*
 extras = dev,
 commands =
-    coverage run -m pytest --ds settingstests
+    coverage run -m pytest --ds settings tests
 
 [gh-actions]
 python =
