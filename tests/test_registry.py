@@ -109,7 +109,8 @@ def test_message_registry_register_event_wrong_type():
 
 
 def test_message_autodiscover_regular():
-    message_registry = MessageRegistry()
+    from queuebie import message_registry
+
     message_registry.autodiscover()
 
     # Assert one command registered

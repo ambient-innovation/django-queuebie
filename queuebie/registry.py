@@ -46,6 +46,9 @@ class MessageRegistry:
             else:
                 self.command_dict[command].append(decoratee)
 
+            logger = get_logger()
+            logger.debug("Registered command '%s'", decoratee.__name__)
+
             # Return decoratee
             return decoratee
 
@@ -62,6 +65,9 @@ class MessageRegistry:
                 self.event_dict[event] = [decoratee]
             else:
                 self.event_dict[event].append(decoratee)
+
+            logger = get_logger()
+            logger.debug("Registered event '%s'", decoratee.__name__)
 
             # Return decoratee
             return decoratee
@@ -85,6 +91,7 @@ class MessageRegistry:
 
         # Project directory
         project_path = QUEUEBIE_APP_BASE_PATH
+        logger = get_logger()
 
         for app in apps.get_app_configs():
             app_path = Path(app.path).resolve()
@@ -99,13 +106,16 @@ class MessageRegistry:
                     for module in os.listdir(app_path / "handlers" / message_type):
                         if module[-3:] == ".py":
                             module_name = module.replace(".py", "")
-                            with contextlib.suppress(ModuleNotFoundError):
-                                importlib.import_module(f"{app.label}.handlers.{message_type}.{module_name}")
+                            try:
+                                module_path = f"{app.label}.handlers.{message_type}.{module_name}"
+                                importlib.import_module(module_path)
+                                logger.debug(f'"{module_path}" imported.')
+                            except ModuleNotFoundError:
+                                pass
                 except FileNotFoundError:
                     pass
 
         # Log to shell which functions have been detected
-        logger = get_logger()
         logger.debug("Message autodiscovery running for commands...")
         for command in self.command_dict:
             handler_list = ", ".join(str(x) for x in self.command_dict[command])
@@ -115,4 +125,4 @@ class MessageRegistry:
             handler_list = ", ".join(str(x) for x in self.event_dict[event])
             logger.debug(f"* {event}: [{handler_list}]")
 
-        logger.debug(f"{len(self.command_dict) + len(self.event_dict)} message functions detected.\n")
+        logger.debug(f"{len(self.command_dict) + len(self.event_dict)} message handlers detected.\n")

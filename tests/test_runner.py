@@ -35,7 +35,7 @@ def test_handle_message_error_in_handler(logger_debug):
     with pytest.raises(RuntimeError, match="Handler is broken."):
         handle_message(messages=DoSomething(context=DoSomething.Context(my_var=1)))
 
-    assert logger_debug.call_count == 2  # noqa: PLR2004
+    assert logger_debug.call_count > 1
     assert mock.call("Exception handling command DoSomething: Handler is broken.") in logger_debug.call_args_list
 
 

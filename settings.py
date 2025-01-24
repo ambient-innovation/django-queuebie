@@ -60,3 +60,20 @@ MIDDLEWARE = (
 
 USE_TZ = True
 TIME_ZONE = "UTC"
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {
+         "console": {
+            "class": "logging.StreamHandler",
+        },
+    },
+    "loggers": {
+        "queuebie": {
+            "handlers": ["console"],
+            "level": "DEBUG",
+            "propagate": True,
+        },
+    },
+}
