@@ -34,6 +34,7 @@ def _handle_command(command: Command, queue: list[Message]):
     """
     Handler to process messages of type "Command"
     """
+    # TODO: refactor that this gets the handler list and a message so we can remove one of those two functions
     handler_list = message_registry.command_dict.get(command.__class__, [])  # TODO: ive replace "list()" here
     for handler in handler_list:
         try:

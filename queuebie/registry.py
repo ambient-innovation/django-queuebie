@@ -1,8 +1,8 @@
 import contextlib
 import importlib
 import os
-from functools import wraps
 from pathlib import Path
+from typing import Type
 
 from django.apps import apps
 from django.conf import settings
@@ -33,7 +33,7 @@ class MessageRegistry:
             cls._instance = super().__new__(cls)
         return cls._instance
 
-    def register_command(self, *, command: Command):
+    def register_command(self, *, command: Type[Command]):
         def decorator(decoratee):
             # Ensure that registered message is of correct type
             if not (issubclass(command, Command)):
@@ -50,7 +50,7 @@ class MessageRegistry:
 
         return decorator
 
-    def register_event(self, *, event: Event):
+    def register_event(self, *, event: Type[Event]):
         def decorator(decoratee):
             # Ensure that registered message is of correct type
             if not (issubclass(event, Event)):
@@ -66,15 +66,6 @@ class MessageRegistry:
             return decoratee
 
         return decorator
-
-    def inject(self, func):
-        # TODO: do we need this?
-        @wraps(func)
-        def decorated(*args, **kwargs):
-            new_args = (*args, self.event_dict)
-            return func(*new_args, **kwargs)
-
-        return decorated
 
     def autodiscover(self) -> None:
         """
@@ -102,6 +93,7 @@ class MessageRegistry:
             if project_path not in app_path.parents:
                 continue
 
+            # TODO: registering only via one file might be a plus
             for message_type in ("commands", "events"):
                 try:
                     for module in os.listdir(app_path / "handlers" / message_type):
