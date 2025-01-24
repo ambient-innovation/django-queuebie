@@ -8,6 +8,7 @@ from django.apps import apps
 from django.conf import settings
 
 from queuebie.exceptions import RegisterWrongMessageTypeError
+from queuebie.logging import get_logger
 from queuebie.messages import Command, Event
 
 
@@ -105,13 +106,14 @@ class MessageRegistry:
                     pass
 
         # Log to shell which functions have been detected
-        print("Message autodiscovery running for commands...")
+        logger = get_logger()
+        logger.debug("Message autodiscovery running for commands...")
         for command in self.command_dict:
             handler_list = ", ".join(str(x) for x in self.command_dict[command])
-            print(f"* {command}: [{handler_list}]")
-        print("Message autodiscovery running for events...")
+            logger.debug(f"* {command}: [{handler_list}]")
+        logger.debug("Message autodiscovery running for events...")
         for event in self.event_dict:
             handler_list = ", ".join(str(x) for x in self.event_dict[event])
-            print(f"* {event}: [{handler_list}]")
+            logger.debug(f"* {event}: [{handler_list}]")
 
-        print(f"{len(self.command_dict) + len(self.event_dict)} message functions detected.\n")
+        logger.debug(f"{len(self.command_dict) + len(self.event_dict)} message functions detected.\n")

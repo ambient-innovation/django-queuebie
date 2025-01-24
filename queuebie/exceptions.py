@@ -12,4 +12,4 @@ class RegisterWrongMessageTypeError(TypeError):
 
 class InvalidMessageTypeError(TypeError):
     def __init__(self, *, class_name: str):
-        super().__init__(f'"{class_name}" was not an Event or Command')
+        super().__init__(f'"{class_name}" is not an Event or Command')
