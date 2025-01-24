@@ -1,12 +1,13 @@
 """Simple event queue for commands and events (CQRS)"""
 
-__version__ = "1.0.0"
+__version__ = "0.1.0"
 
 from queuebie.registry import MessageRegistry
 
 # Create global message registry
 # TODO: is this thread-safe? doesn't matter, contains just the methods
 #  -> if this is a proper singleton, we could call it when we need it instead of hiding it here
+#  -> maybe not because we have to use this as a decorator...
 message_registry = MessageRegistry()
 
 # TODO: tasks for v1.0
