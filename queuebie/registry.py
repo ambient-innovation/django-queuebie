@@ -10,6 +10,7 @@ from django.conf import settings
 from queuebie.exceptions import RegisterWrongMessageTypeError
 from queuebie.logging import get_logger
 from queuebie.messages import Command, Event
+from queuebie.settings import QUEUEBIE_APP_BASE_PATH
 
 
 class MessageRegistry:
@@ -84,8 +85,7 @@ class MessageRegistry:
         #  baust du das in die CI ein. fertig
 
         # Project directory
-        # TODO: document that this has to be set -> make custom var that defaults to BASE_PATH
-        project_path = settings.BASE_PATH
+        project_path = QUEUEBIE_APP_BASE_PATH
 
         for app in apps.get_app_configs():
             app_path = Path(app.path).resolve()

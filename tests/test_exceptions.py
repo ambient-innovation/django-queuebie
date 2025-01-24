@@ -16,4 +16,4 @@ def test_register_wrong_message_type_error():
 def test_invalid_message_type_error():
     exception = InvalidMessageTypeError(class_name="MyClass")
 
-    assert str(exception) == '"MyClass" was not an Event or Command'
+    assert str(exception) == '"MyClass" is not an Event or Command'
