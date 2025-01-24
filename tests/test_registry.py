@@ -14,9 +14,11 @@ def test_message_registry_init_regular():
 
 def test_message_registry_singleton_works():
     message_registry_1 = MessageRegistry()
+    message_registry_1.command_dict[0] = "my_module"
     message_registry_2 = MessageRegistry()
 
     assert message_registry_1 is message_registry_2
+    assert message_registry_1.command_dict == message_registry_2.command_dict
 
 
 def test_message_registry_register_command_regular():
@@ -109,7 +111,7 @@ def test_message_registry_register_event_wrong_type():
 
 
 def test_message_autodiscover_regular():
-    from queuebie import message_registry
+    message_registry = MessageRegistry()
 
     message_registry.autodiscover()
 

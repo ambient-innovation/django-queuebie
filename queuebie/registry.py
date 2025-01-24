@@ -1,6 +1,6 @@
-import contextlib
 import importlib
 import os
+import sys
 from pathlib import Path
 from typing import Type
 
@@ -108,6 +108,11 @@ class MessageRegistry:
                             module_name = module.replace(".py", "")
                             try:
                                 module_path = f"{app.label}.handlers.{message_type}.{module_name}"
+                                # To avoid issues, we remove already imported modules so the registration process works
+                                # smoothly
+                                if module_path in sys.modules:
+                                    del sys.modules[module_path]
+                                # Import module and thus triggering the registration decorator logic
                                 importlib.import_module(module_path)
                                 logger.debug(f'"{module_path}" imported.')
                             except ModuleNotFoundError:
