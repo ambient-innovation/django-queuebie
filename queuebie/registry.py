@@ -5,10 +5,9 @@ from pathlib import Path
 from typing import Type
 
 from django.apps import apps
-from django.conf import settings
 
 from queuebie.exceptions import RegisterWrongMessageTypeError
-from queuebie.logging import get_logger
+from queuebie.logger import get_logger
 from queuebie.messages import Command, Event
 from queuebie.settings import QUEUEBIE_APP_BASE_PATH
 

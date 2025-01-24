@@ -1,5 +1,5 @@
 from queuebie import message_registry
-from queuebie.logging import get_logger
+from queuebie.logger import get_logger
 from queuebie.messages import Event
 from testapp.messages.commands.my_commands import DoSomething
 from testapp.messages.events.my_events import SomethingHappened

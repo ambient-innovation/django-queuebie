@@ -1,9 +1,9 @@
 from ambient_package_update.metadata.author import PackageAuthor
 from ambient_package_update.metadata.constants import (
+    DEPLOYMENT_STATUS_BETA,
     DEV_DEPENDENCIES,
     LICENSE_MIT,
     SUPPORTED_DJANGO_VERSIONS,
-    SUPPORTED_PYTHON_VERSIONS,
 )
 from ambient_package_update.metadata.maintainer import PackageMaintainer
 from ambient_package_update.metadata.package import PackageMetadata
@@ -21,17 +21,22 @@ METADATA = PackageMetadata(
         ),
     ],
     maintainer=PackageMaintainer(name="Ambient Digital", url="https://ambient.digital/", email="hello@ambient.digital"),
-    company="Ambient Innovation: GmbH",
+    licenser="Ambient Innovation: GmbH",
     license=LICENSE_MIT,
     license_year=2025,
-    development_status="Development Status :: 4 - Beta",
+    development_status=DEPLOYMENT_STATUS_BETA,
     has_migrations=False,
     readme_content=ReadmeContent(uses_internationalisation=True),
     dependencies=[
         f"Django>={SUPPORTED_DJANGO_VERSIONS[0]}",
     ],
     supported_django_versions=SUPPORTED_DJANGO_VERSIONS,
-    supported_python_versions=SUPPORTED_PYTHON_VERSIONS,
+    supported_python_versions=[
+        "3.10",
+        "3.11",
+        "3.12",
+        "3.13",
+    ],
     optional_dependencies={
         "dev": [
             *DEV_DEPENDENCIES,

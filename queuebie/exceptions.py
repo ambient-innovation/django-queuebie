@@ -6,7 +6,7 @@ class MessageContextWrongTypeError(RuntimeError):
 class RegisterWrongMessageTypeError(TypeError):
     def __init__(self, *, message_name: str, decoratee_name: str):
         super().__init__(
-            f'Trying to register message function of wrong type: "{message_name}" ' f'on handler "{decoratee_name}".'
+            f'Trying to register message function of wrong type: "{message_name}" on handler "{decoratee_name}".'
         )
 
 

@@ -1,7 +1,7 @@
 from django.db import transaction
 
 from queuebie.exceptions import InvalidMessageTypeError
-from queuebie.logging import get_logger
+from queuebie.logger import get_logger
 from queuebie.messages import Command, Event, Message
 
 
@@ -13,7 +13,7 @@ def handle_message(messages: Message | list[Message]) -> None:
             raise InvalidMessageTypeError(class_name=message.__class__.__name__)
 
     # Run auto-registry
-    # todo: do we need this here?
+    # TODO: do we need this here?
     from queuebie import message_registry
 
     message_registry.autodiscover()
