@@ -1,8 +1,10 @@
 import pytest
 
 from queuebie import MessageRegistry
+from queuebie.exceptions import RegisterOutOfScopeCommandError
 from testapp.messages.commands.my_commands import DoSomething
 from testapp.messages.events.my_events import SomethingHappened
+from tests.helpers.commands import TestCommand
 
 
 def test_message_registry_init_regular():
@@ -26,12 +28,12 @@ def test_message_registry_register_command_regular():
         return None
 
     message_registry = MessageRegistry()
-    decorator = message_registry.register_command(command=DoSomething)
+    decorator = message_registry.register_command(command=TestCommand)
     decorator(dummy_function)
 
     assert len(message_registry.event_dict) == 0
     assert len(message_registry.command_dict) == 1
-    assert "dummy_function" in str(message_registry.command_dict[DoSomething][0])
+    assert "dummy_function" in str(message_registry.command_dict[TestCommand][0])
 
 
 def test_message_registry_register_command_second_function():
@@ -42,14 +44,14 @@ def test_message_registry_register_command_second_function():
         return None
 
     message_registry = MessageRegistry()
-    decorator = message_registry.register_command(command=DoSomething)
+    decorator = message_registry.register_command(command=TestCommand)
     decorator(dummy_function)
     decorator(dummy_function_2)
 
     assert len(message_registry.event_dict) == 0
     assert len(message_registry.command_dict) == 1
-    assert "dummy_function" in str(message_registry.command_dict[DoSomething][0])
-    assert "dummy_function_2" in str(message_registry.command_dict[DoSomething][1])
+    assert "dummy_function" in str(message_registry.command_dict[TestCommand][0])
+    assert "dummy_function_2" in str(message_registry.command_dict[TestCommand][1])
 
 
 def test_message_registry_register_command_wrong_type():
@@ -62,6 +64,20 @@ def test_message_registry_register_command_wrong_type():
     with pytest.raises(
         TypeError,
         match='Trying to register message function of wrong type: "SomethingHappened" on handler "dummy_function".',
+    ):
+        decorator(dummy_function)
+
+
+def test_message_registry_register_command_wrong_scope():
+    def dummy_function(*args):
+        return None
+
+    message_registry = MessageRegistry()
+    decorator = message_registry.register_command(command=DoSomething)
+
+    with pytest.raises(
+        RegisterOutOfScopeCommandError,
+        match='Trying to register a command from another scope/app: "DoSomething" on handler "dummy_function".',
     ):
         decorator(dummy_function)
 

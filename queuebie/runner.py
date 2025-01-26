@@ -33,6 +33,7 @@ def _process_message(*, handler_list: list, message: [Command, Event]):
     Handler to process messages of type "Command"
     """
     logger = get_logger()
+    messages = []
 
     for handler in handler_list:
         try:
@@ -45,12 +46,14 @@ def _process_message(*, handler_list: list, message: [Command, Event]):
             if handler:
                 # TODO: das sollte um das ganze handle_message - ist das so? test schreiben
                 with transaction.atomic():
-                    new_messages = handler(context=message.Context) or []
-                    new_messages = new_messages if isinstance(new_messages, list) else [new_messages]
-                    uuid_list = [f"{m!s}" for m in new_messages]
+                    handler_messages = handler(context=message.Context) or []
+                    handler_messages = handler_messages if isinstance(handler_messages, list) else [handler_messages]
+                    if len(handler_messages) > 0:
+                        messages.append(*handler_messages)
+                    uuid_list = [f"{m!s}" for m in handler_messages]
                     logger.debug(f"New messages: {uuid_list!s}")
         except Exception as e:
             logger.debug(f"Exception handling command {message.__class__.__name__}: {e!s}")
             raise e from e
 
-        return new_messages
+    return messages

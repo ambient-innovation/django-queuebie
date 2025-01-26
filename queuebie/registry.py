@@ -2,14 +2,14 @@ import importlib
 import os
 import sys
 from pathlib import Path
-from typing import Type
 
 from django.apps import apps
 
-from queuebie.exceptions import RegisterWrongMessageTypeError
+from queuebie.exceptions import RegisterOutOfScopeCommandError, RegisterWrongMessageTypeError
 from queuebie.logger import get_logger
 from queuebie.messages import Command, Event
 from queuebie.settings import QUEUEBIE_APP_BASE_PATH
+from queuebie.utils import is_part_of_app
 
 
 class MessageRegistry:
@@ -34,11 +34,14 @@ class MessageRegistry:
             cls._instance = super().__new__(cls)
         return cls._instance
 
-    def register_command(self, *, command: Type[Command]):
+    def register_command(self, *, command: type[Command]):
         def decorator(decoratee):
             # Ensure that registered message is of correct type
             if not (issubclass(command, Command)):
                 raise RegisterWrongMessageTypeError(message_name=command.__name__, decoratee_name=decoratee.__name__)
+
+            if not is_part_of_app(function=decoratee, class_type=command):
+                raise RegisterOutOfScopeCommandError(message_name=command.__name__, decoratee_name=decoratee.__name__)
 
             # Add decoratee to dependency list
             if command not in self.command_dict:
@@ -54,7 +57,7 @@ class MessageRegistry:
 
         return decorator
 
-    def register_event(self, *, event: Type[Event]):
+    def register_event(self, *, event: type[Event]):
         def decorator(decoratee):
             # Ensure that registered message is of correct type
             if not (issubclass(event, Event)):
@@ -93,8 +96,8 @@ class MessageRegistry:
         project_path = QUEUEBIE_APP_BASE_PATH
         logger = get_logger()
 
-        for app in apps.get_app_configs():
-            app_path = Path(app.path).resolve()
+        for app_config in apps.get_app_configs():
+            app_path = Path(app_config.path).resolve()
 
             # If it's not a local app, we don't care
             if project_path not in app_path.parents:
@@ -107,13 +110,12 @@ class MessageRegistry:
                         if module[-3:] == ".py":
                             module_name = module.replace(".py", "")
                             try:
-                                module_path = f"{app.label}.handlers.{message_type}.{module_name}"
-                                # To avoid issues, we remove already imported modules so the registration process works
-                                # smoothly
-                                if module_path in sys.modules:
-                                    del sys.modules[module_path]
-                                # Import module and thus triggering the registration decorator logic
-                                importlib.import_module(module_path)
+                                module_path = f"{app_config.label}.handlers.{message_type}.{module_name}"
+                                sys_module = sys.modules.get(module_path)
+                                if sys_module:
+                                    importlib.reload(sys_module)
+                                else:
+                                    importlib.import_module(module_path)
                                 logger.debug(f'"{module_path}" imported.')
                             except ModuleNotFoundError:
                                 pass
