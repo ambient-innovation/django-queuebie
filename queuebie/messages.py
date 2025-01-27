@@ -31,6 +31,10 @@ class Message(abc.ABC):
     def __str__(self) -> str:
         return f"{self.__class__} ({self.uuid})"
 
+    @classmethod
+    def module_path(cls) -> str:
+        return f"{cls.__module__}.{cls.__qualname__}"
+
 
 class Command(Message):
     """

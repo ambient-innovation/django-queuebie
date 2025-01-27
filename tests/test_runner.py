@@ -6,8 +6,7 @@ import pytest
 from queuebie import MessageRegistry
 from queuebie.exceptions import InvalidMessageTypeError
 from queuebie.runner import handle_message
-from testapp.messages.commands.my_commands import DoSomething
-from tests.helpers.commands import TestCommand
+from testapp.messages.commands.my_commands import CriticalCommand, DoSomething
 
 
 @pytest.mark.django_db
@@ -26,18 +25,16 @@ def test_handle_message_queue_enqueues_next_messages(mocked_logger_info):
 @pytest.mark.django_db
 @mock.patch.object(Logger, "debug")
 def test_handle_message_error_in_handler(logger_debug):
-    def dummy_function(context):
-        raise RuntimeError("Handler is broken.")  # noqa: TRY003
-
-    message_registry = MessageRegistry()
-    decorator = message_registry.register_command(command=TestCommand)
-    decorator(dummy_function)
-
     with pytest.raises(RuntimeError, match="Handler is broken."):
-        handle_message(messages=TestCommand(context=TestCommand.Context(my_var=1)))
+        handle_message(messages=CriticalCommand(context=CriticalCommand.Context(my_var=0)))
 
     assert logger_debug.call_count > 1
-    assert mock.call("Exception handling command TestCommand: Handler is broken.") in logger_debug.call_args_list
+    assert (
+        mock.call(
+            "Exception handling command testapp.messages.commands.my_commands.CriticalCommand: Handler is broken."
+        )
+        in logger_debug.call_args_list
+    )
 
 
 @pytest.mark.django_db
