@@ -93,7 +93,7 @@ class MessageRegistry:
 
         return decorator
 
-    def autodiscover(self) -> None:  # noqa: PLR0912 todo: fixme
+    def autodiscover(self) -> None:
         """
         Detects message registries which have been registered via the "register_*" decorator.
         """
@@ -131,16 +131,13 @@ class MessageRegistry:
                         if module[-3:] != ".py":
                             continue
                         module_name = module.replace(".py", "")
-                        try:
-                            module_path = f"{app_config.label}.handlers.{message_type}.{module_name}"
-                            sys_module = sys.modules.get(module_path)
-                            if sys_module:
-                                importlib.reload(sys_module)
-                            else:
-                                importlib.import_module(module_path)
-                            logger.debug(f'"{module_path}" imported.')
-                        except ModuleNotFoundError:
-                            pass
+                        module_path = f"{app_config.label}.handlers.{message_type}.{module_name}"
+                        sys_module = sys.modules.get(module_path)
+                        if sys_module:
+                            importlib.reload(sys_module)
+                        else:
+                            importlib.import_module(module_path)
+                        logger.debug(f'"{module_path}" imported.')
                 except FileNotFoundError:
                     pass
 

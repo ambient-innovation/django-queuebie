@@ -24,7 +24,7 @@ def handle_message(messages: Message | list[Message]) -> None:
         # TODO: test this with messages with the same name
         if isinstance(message, Command):
             handler_list = message_registry.command_dict.get(message.module_path(), [])
-        elif isinstance(message, Event):
+        else:
             handler_list = message_registry.event_dict.get(message.module_path(), [])
 
         new_messages = _process_message(handler_list=handler_list, message=message)

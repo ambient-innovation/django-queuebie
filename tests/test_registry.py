@@ -4,7 +4,7 @@ from queuebie import MessageRegistry
 from queuebie.exceptions import RegisterOutOfScopeCommandError
 from testapp.messages.commands.my_commands import CriticalCommand, DoSomething
 from testapp.messages.events.my_events import SomethingHappened
-from tests.helpers.commands import TestCommand
+from tests.helpers.commands import DoTestThings
 
 
 def dummy_function(*args):
@@ -33,24 +33,24 @@ def test_message_registry_singleton_works():
 
 def test_message_registry_register_command_regular():
     message_registry = MessageRegistry()
-    decorator = message_registry.register_command(command=TestCommand)
+    decorator = message_registry.register_command(command=DoTestThings)
     decorator(dummy_function)
 
     assert len(message_registry.event_dict) == 0
     assert len(message_registry.command_dict) == 1
-    assert "dummy_function" in str(message_registry.command_dict[TestCommand.module_path()][0])
+    assert "dummy_function" in str(message_registry.command_dict[DoTestThings.module_path()][0])
 
 
 def test_message_registry_register_command_second_function():
     message_registry = MessageRegistry()
-    decorator = message_registry.register_command(command=TestCommand)
+    decorator = message_registry.register_command(command=DoTestThings)
     decorator(dummy_function)
     decorator(dummy_function_2)
 
     assert len(message_registry.event_dict) == 0
     assert len(message_registry.command_dict) == 1
-    assert "dummy_function" in str(message_registry.command_dict[TestCommand.module_path()][0])
-    assert "dummy_function_2" in str(message_registry.command_dict[TestCommand.module_path()][1])
+    assert "dummy_function" in str(message_registry.command_dict[DoTestThings.module_path()][0])
+    assert "dummy_function_2" in str(message_registry.command_dict[DoTestThings.module_path()][1])
 
 
 def test_message_registry_register_command_wrong_type():

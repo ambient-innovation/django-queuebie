@@ -7,6 +7,7 @@ from queuebie import MessageRegistry
 from queuebie.exceptions import InvalidMessageTypeError
 from queuebie.runner import handle_message
 from testapp.messages.commands.my_commands import CriticalCommand, DoSomething
+from testapp.messages.events.my_events import SomethingHappened
 
 
 @pytest.mark.django_db
@@ -51,7 +52,7 @@ def test_handle_message_pass_message_list(handle_command):
     handle_message(
         messages=[
             DoSomething(context=DoSomething.Context(my_var=1)),
-            DoSomething(context=DoSomething.Context(my_var=2)),
+            SomethingHappened(context=SomethingHappened.Context(other_var=2)),
         ]
     )
 
