@@ -1,9 +1,9 @@
-from typing import Callable, Type
+from collections.abc import Callable
 
 from django.apps import apps
 
 
-def is_part_of_app(*, function: Callable, class_type: Type) -> bool:
+def is_part_of_app(*, function: Callable, class_type: type) -> bool:
     """
     Checks if a class belongs to the same Django app as the given function.
     """

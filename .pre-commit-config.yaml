@@ -24,14 +24,12 @@ repos:
     hooks:
       - id: pyupgrade
         args: [ --py310-plus ]
-        stages: [ pre-push ]
 
   - repo: https://github.com/adamchainz/django-upgrade
     rev: 1.22.2
     hooks:
       - id: django-upgrade
         args: [--target-version, "4.2"]
-        stages: [ pre-push ]
 
   - repo: https://github.com/adamchainz/djade-pre-commit
     rev: 1.3.2

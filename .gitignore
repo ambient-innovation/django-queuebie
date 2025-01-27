@@ -157,5 +157,4 @@ _build
 # Test databases
 *.sqlite
 
-# Custom patterns
-test/*
+
