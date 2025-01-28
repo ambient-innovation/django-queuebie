@@ -1,4 +1,8 @@
+from pathlib import Path
+from unittest import mock
+
 import pytest
+from django.core.cache import cache
 
 from queuebie import MessageRegistry
 from queuebie.exceptions import RegisterOutOfScopeCommandError
@@ -108,8 +112,9 @@ def test_message_registry_register_event_wrong_type():
 
 
 def test_message_autodiscover_regular():
-    message_registry = MessageRegistry()
+    cache.clear()
 
+    message_registry = MessageRegistry()
     message_registry.autodiscover()
 
     # Assert one command registered
@@ -133,3 +138,15 @@ def test_message_autodiscover_regular():
     assert {"module": "testapp.handlers.events.testapp", "name": "handle_my_event"} == message_registry.event_dict[
         SomethingHappened.module_path()
     ][0]
+
+
+@mock.patch("queuebie.registry.QUEUEBIE_APP_BASE_PATH", return_value=Path("/some/path"))
+def test_message_autodiscover_no_local_apps(*args):
+    cache.clear()
+
+    message_registry = MessageRegistry()
+    message_registry.autodiscover()
+
+    # Assert one command registered
+    assert len(message_registry.command_dict) == 0
+    assert len(message_registry.event_dict) == 0
