@@ -11,8 +11,8 @@ from django.core.cache import cache
 from queuebie.exceptions import RegisterOutOfScopeCommandError, RegisterWrongMessageTypeError
 from queuebie.logger import get_logger
 from queuebie.messages import Command, Event
-from queuebie.settings import QUEUEBIE_APP_BASE_PATH
-from queuebie.utils import is_part_of_app
+from queuebie.settings import QUEUEBIE_APP_BASE_PATH, QUEUEBIE_CACHE_KEY
+from queuebie.utils import is_part_of_app, unique_append_to_inner_list
 
 
 @dataclasses.dataclass(kw_only=True)
@@ -56,10 +56,9 @@ class MessageRegistry:
             function_definition = dataclasses.asdict(
                 FunctionDefinition(module=decoratee.__module__, name=decoratee.__name__)
             )
-            if command.module_path() not in self.command_dict:
-                self.command_dict[command.module_path()] = [function_definition]
-            elif function_definition not in self.command_dict[command.module_path()]:
-                self.command_dict[command.module_path()].append(function_definition)
+            self.command_dict = unique_append_to_inner_list(
+                data=self.command_dict, key=command.module_path(), value=function_definition
+            )
 
             logger = get_logger()
             logger.debug("Registered command '%s'", decoratee.__name__)
@@ -80,10 +79,9 @@ class MessageRegistry:
             function_definition = dataclasses.asdict(
                 FunctionDefinition(module=decoratee.__module__, name=decoratee.__name__)
             )
-            if event.module_path() not in self.event_dict:
-                self.event_dict[event.module_path()] = [function_definition]
-            elif function_definition not in self.event_dict[event.module_path()]:
-                self.event_dict[event.module_path()].append(function_definition)
+            self.event_dict = unique_append_to_inner_list(
+                data=self.event_dict, key=event.module_path(), value=function_definition
+            )
 
             logger = get_logger()
             logger.debug("Registered event '%s'", decoratee.__name__)
@@ -97,21 +95,12 @@ class MessageRegistry:
         """
         Detects message registries which have been registered via the "register_*" decorator.
         """
-        cached_commands = cache.get("commands")
-        # TODO: casting to dataclass is missing
-        if cached_commands is not None:
-            self.command_dict = json.loads(cached_commands)
-        cached_events = cache.get("events")
-        if cached_events is not None:
-            self.event_dict = json.loads(cached_events)
+        # Fetch registered handlers from cache if possible
+        self.command_dict, self.event_dict = self._load_handlers_from_cache()
 
-        # Import all messages in all installed apps to trigger notification class registration via decorator
-        # TODO: can we not do this on every request?
-        #  -> use the django cache -> do i have to handle if there is none?
-        #  -> need to be able to kill the cache when the files change -> python file metadata?
-        #  --> but then i have to go over all files, too
-        #  dont overengineer. ich mach n MC, welches das putzt. wenn du n deployment unabhängigen cache verwendest,
-        #  baust du das in die CI ein. fertig
+        # If the handlers were cached, we don't have to go through the file system
+        if len(self.command_dict) > 0 and len(self.event_dict) > 0:
+            return
 
         # Project directory
         project_path = QUEUEBIE_APP_BASE_PATH
@@ -155,5 +144,18 @@ class MessageRegistry:
 
         # Update cache
         # TODO: docs about default timeout > 300?
-        cache.set("commands", json.dumps(self.command_dict))
-        cache.set("events", json.dumps(self.event_dict))
+        cache.set(QUEUEBIE_CACHE_KEY, json.dumps({"commands": self.command_dict, "events": self.event_dict}))
+
+    def _load_handlers_from_cache(self) -> tuple[dict, dict]:
+        """
+        Get registered handler definitions from Django cache
+        """
+        cached_data = cache.get(QUEUEBIE_CACHE_KEY)
+        if cached_data is None:
+            return {}, {}
+        json_data = json.loads(cached_data)
+        # TODO: casting to dataclass is missing
+        cached_commands = json_data.get("commands", None)
+        cached_events = json_data.get("events", None)
+
+        return cached_commands, cached_events

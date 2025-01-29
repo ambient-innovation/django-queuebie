@@ -1,11 +1,14 @@
+import json
 from pathlib import Path
 from unittest import mock
 
 import pytest
 from django.core.cache import cache
+from django.test import override_settings
 
 from queuebie import MessageRegistry
 from queuebie.exceptions import RegisterOutOfScopeCommandError
+from queuebie.settings import QUEUEBIE_CACHE_KEY
 from testapp.messages.commands.my_commands import CriticalCommand, DoSomething
 from testapp.messages.events.my_events import SomethingHappened
 from tests.helpers.commands import DoTestThings
@@ -147,6 +150,36 @@ def test_message_autodiscover_no_local_apps(*args):
     message_registry = MessageRegistry()
     message_registry.autodiscover()
 
-    # Assert one command registered
     assert len(message_registry.command_dict) == 0
     assert len(message_registry.event_dict) == 0
+
+
+@mock.patch("importlib.import_module")
+@mock.patch("importlib.reload")
+def test_message_autodiscover_caching_avoid_importing_again(mocked_reload_module, mocked_import_module):
+    cache.set(QUEUEBIE_CACHE_KEY, json.dumps({"commands": ["my_command_handler"], "events": ["my_event_handler"]}))
+
+    message_registry = MessageRegistry()
+    message_registry.autodiscover()
+
+    assert mocked_reload_module.call_count == 0
+    assert mocked_import_module.call_count == 0
+
+
+def test_message_autodiscover_load_handlers_from_cache_regular(*args):
+    cache.set(QUEUEBIE_CACHE_KEY, json.dumps({"commands": ["my_command_handler"], "events": ["my_event_handler"]}))
+
+    message_registry = MessageRegistry()
+    commands, events = message_registry._load_handlers_from_cache()
+
+    assert len(commands) == 1
+    assert len(events) == 1
+
+
+@override_settings(CACHES={"default": {"BACKEND": "django.core.cache.backends.dummy.DummyCache"}})
+def test_message_autodiscover_load_handlers_from_cache_dummy_cache(*args):
+    message_registry = MessageRegistry()
+    commands, events = message_registry._load_handlers_from_cache()
+
+    assert len(commands) == 0
+    assert len(events) == 0
