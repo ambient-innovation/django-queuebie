@@ -1,7 +1,7 @@
 # Introduction
 
 This package provides a simple message queue for commands and events. The queue is synchronous and lacks certain frills
-you might expect from a message queue.
+you might expect from a more elaborate message queue.
 
 The idea is to split your business logic in commands and events and write small function-based handlers which you can
 register to either of them.
@@ -34,7 +34,7 @@ class ProductBought(Event):
 # Example handler
 @message_registry.register_command(BuyProduct)
 def handle_buy_product(context: BuyProduct.Context) -> Event:
-    # Do fancy things
+    # Here lives your business logic
 
     return ProductBought(
         context=ProductBought.Context(

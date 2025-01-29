@@ -29,6 +29,8 @@ variable.
 QUEUEBIE_LOGGER_NAME = "my_very_special_logger"
 ```
 
+Take care to use the same name in the logging configuration in your Django settings.
+
 ## QUEUEBIE_STRICT_MODE
 
 Queuebie enforces by default that commands are not used outside its domain (aka Django app). If you want to skip that

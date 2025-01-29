@@ -69,7 +69,7 @@ from queuebie.messages import Event
 # Example handler
 @message_registry.register_command(BuyProduct)
 def handle_buy_product(context: BuyProduct.Context) -> Event:
-    # Do fancy things
+    # Here lives your business logic
 
     return ProductBought(
         context=ProductBought.Context(
