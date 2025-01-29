@@ -51,7 +51,7 @@ def _process_message(*, handler_list: list, message: [Command, Event]):
                 handler_messages = handler_function(context=message.Context) or []
                 handler_messages = handler_messages if isinstance(handler_messages, list) else [handler_messages]
                 if len(handler_messages) > 0:
-                    messages.append(*handler_messages)
+                    messages.extend(handler_messages)
                 uuid_list = [f"{m!s}" for m in handler_messages]
                 logger.debug(f"New messages: {uuid_list!s}")
             except Exception as e:

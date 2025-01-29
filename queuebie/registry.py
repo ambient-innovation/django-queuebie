@@ -11,7 +11,7 @@ from django.core.cache import cache
 from queuebie.exceptions import RegisterOutOfScopeCommandError, RegisterWrongMessageTypeError
 from queuebie.logger import get_logger
 from queuebie.messages import Command, Event
-from queuebie.settings import QUEUEBIE_APP_BASE_PATH, QUEUEBIE_CACHE_KEY
+from queuebie.settings import QUEUEBIE_APP_BASE_PATH, QUEUEBIE_CACHE_KEY, QUEUEBIE_STRICT_MODE
 from queuebie.utils import is_part_of_app, unique_append_to_inner_list
 
 
@@ -48,7 +48,7 @@ class MessageRegistry:
             if not (issubclass(command, Command)):
                 raise RegisterWrongMessageTypeError(message_name=command.__name__, decoratee_name=decoratee.__name__)
 
-            if not is_part_of_app(function=decoratee, class_type=command):
+            if QUEUEBIE_STRICT_MODE and not is_part_of_app(function=decoratee, class_type=command):
                 raise RegisterOutOfScopeCommandError(message_name=command.__name__, decoratee_name=decoratee.__name__)
 
             # Add decoratee to dependency list
@@ -119,7 +119,7 @@ class MessageRegistry:
                         if module[-3:] != ".py":
                             continue
                         module_name = module.replace(".py", "")
-                        module_path = f"{app_config.label}.handlers.{message_type}.{module_name}"
+                        module_path = f"{app_config.name}.handlers.{message_type}.{module_name}"
                         sys_module = sys.modules.get(module_path)
                         if sys_module:
                             importlib.reload(sys_module)
