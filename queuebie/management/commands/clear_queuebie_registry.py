@@ -7,7 +7,6 @@ from queuebie.settings import QUEUEBIE_CACHE_KEY
 
 class Command(BaseCommand):
     def handle(self, *args, **options):
-        # TODO: document me that this should go in the deployment process in the CI
         cache.delete(QUEUEBIE_CACHE_KEY)
 
         logger = get_logger()

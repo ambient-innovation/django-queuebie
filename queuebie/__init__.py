@@ -5,12 +5,12 @@ __version__ = "0.1.0"
 from queuebie.registry import MessageRegistry
 
 # Create global message registry
-# TODO: is this thread-safe? doesn't matter, contains just the methods
-#  -> if this is a proper singleton, we could call it when we need it instead of hiding it here
-#  -> maybe not because we have to use this as a decorator...
 message_registry = MessageRegistry()
 
-# TODO: tasks for v1.0
-#  -> docs with examples
-#  -> tests
-#  -> fix all code todos
+# TODO: docs with examples
+# TODO: add docs about how to set up logger
+# TODO: docs about default timeout could be > 300?
+# TODO: do we want a separate cache for queuebie?
+# TODO: message handling optional in db oder im log ausgeben: context, request-datum, user etc.
+# TODO: document settings
+# TODO: document management command that this should go in the deployment process in the CI

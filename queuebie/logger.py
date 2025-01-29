@@ -4,6 +4,7 @@ from queuebie.settings import QUEUEBIE_LOGGER_NAME
 
 
 def get_logger() -> logging.Logger:
-    # TODO: write test
-    # TODO: add docs about how to set up logger
+    """
+    Returns an instance of a queuebie Django logger
+    """
     return logging.getLogger(QUEUEBIE_LOGGER_NAME)

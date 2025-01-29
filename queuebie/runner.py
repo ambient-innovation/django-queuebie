@@ -43,9 +43,6 @@ def _process_message(*, handler_list: list, message: [Command, Event]):
     with transaction.atomic():
         for handler in handler_list:
             try:
-                # TODO: warum ist der rückgabewert hier wichtig? wäre das was für ein db log?
-                # TODO: logger bauen, den man über das django logging in den settings konfigurieren kann
-                #  context, request-datum, user etc.
                 logger.debug(
                     f"Handling command '{message.module_path()}' ({message.uuid}) with handler '{handler['name']}'."
                 )

@@ -26,8 +26,7 @@ class MessageRegistry:
     Singleton for registering messages classes in.
     """
 
-    # TODO: maybe use a generic solution in the toolbox, where you have namespaces what you want to register so I
-    #  can remove the notification registry, too
+    # TODO: make message registry generic and put in toolbox
 
     # TODO: build a system check that validates that in handlers registered message (command/event) match the context
     #  -> maybe we already have this in the autodiscover
@@ -143,7 +142,6 @@ class MessageRegistry:
         logger.debug(f"{len(self.command_dict) + len(self.event_dict)} message handlers detected.\n")
 
         # Update cache
-        # TODO: docs about default timeout > 300?
         cache.set(QUEUEBIE_CACHE_KEY, json.dumps({"commands": self.command_dict, "events": self.event_dict}))
 
     def _load_handlers_from_cache(self) -> tuple[dict, dict]:

@@ -5,7 +5,6 @@ from dataclasses import dataclass
 from queuebie.exceptions import MessageContextWrongTypeError
 
 
-# TODO: commands dürfen nicht in anderen apps importiert werden, nur events
 class Message(abc.ABC):
     """
     Base class for all commands and events.
