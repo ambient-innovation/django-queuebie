@@ -27,10 +27,6 @@ class MessageRegistry:
     """
 
     # TODO: make message registry generic and put in toolbox
-
-    # TODO: build a system check that validates that in handlers registered message (command/event) match the context
-    #  -> maybe we already have this in the autodiscover
-    # TODO: Command-Handler have to create Event - as a check?
     _instance: "MessageRegistry" = None
 
     def __init__(self):
@@ -112,7 +108,6 @@ class MessageRegistry:
             if project_path not in app_path.parents:
                 continue
 
-            # TODO: registering only via one file might be a plus
             for message_type in ("commands", "events"):
                 try:
                     for module in os.listdir(app_path / "handlers" / message_type):
@@ -152,7 +147,6 @@ class MessageRegistry:
         if cached_data is None:
             return {}, {}
         json_data = json.loads(cached_data)
-        # TODO: casting to dataclass is missing
         cached_commands = json_data.get("commands", None)
         cached_events = json_data.get("events", None)
 
