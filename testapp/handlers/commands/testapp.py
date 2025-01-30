@@ -1,3 +1,5 @@
+from django.contrib.auth.models import User
+
 from queuebie import message_registry
 from queuebie.logger import get_logger
 from queuebie.messages import Event
@@ -16,3 +18,11 @@ def handle_my_command(*, context: DoSomething.Context) -> list[Event] | Event:
 def handle_critical_command(*, context: CriticalCommand.Context) -> None:
     if context.my_var == 0:
         raise RuntimeError("Handler is broken.")  # noqa: TRY003
+
+
+def create_user(*args, **kwargs):
+    return User.objects.create_user(username="username")
+
+
+def raise_exception(*args, **kwargs):
+    raise RuntimeError("Something is broken.")  # noqa: TRY003

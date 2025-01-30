@@ -37,7 +37,6 @@ def _process_message(*, handler_list: list, message: [Command, Event]):
     logger = get_logger()
     messages = []
 
-    # TODO: test schreiben für atomic -> error mittendrin werfen
     with transaction.atomic():
         for handler in handler_list:
             try:

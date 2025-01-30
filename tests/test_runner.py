@@ -2,10 +2,11 @@ from logging import Logger
 from unittest import mock
 
 import pytest
+from django.contrib.auth.models import User
 
 from queuebie import MessageRegistry
 from queuebie.exceptions import InvalidMessageTypeError
-from queuebie.runner import handle_message
+from queuebie.runner import _process_message, handle_message
 from testapp.messages.commands.my_commands import CriticalCommand, DoSomething, SameNameCommand
 from testapp.messages.events.my_events import SomethingHappened
 
@@ -98,3 +99,19 @@ def test_handle_message_other_command_with_same_name(mocked_handle_command, *arg
     assert mocked_handle_command.call_args_list[1][1]["handler_list"] == [
         {"module": "tests.test_runner", "name": "dummy_func"}
     ]
+
+
+@pytest.mark.django_db
+@mock.patch("queuebie.registry.get_queuebie_strict_mode", return_value=False)
+def test_process_message_atomic_works(mocked_handle_command, *args):
+    handler_list = [
+        {"module": "testapp.handlers.commands.testapp", "name": "create_user"},
+        {"module": "testapp.handlers.commands.testapp", "name": "raise_exception"},
+    ]
+
+    message = DoSomething(context=DoSomething.Context(my_var=1))
+
+    with pytest.raises(RuntimeError, match="Something is broken."):
+        _process_message(handler_list=handler_list, message=message)
+
+    assert User.objects.filter(username="username").exists() is False
