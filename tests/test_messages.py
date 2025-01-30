@@ -1,23 +1,16 @@
-import dataclasses
+from unittest import mock
 
-from queuebie.messages import Message
+from testapp.messages.commands.my_commands import DoSomething
 
 
-def test_message_init_uuid_set():
-    @dataclasses.dataclass(kw_only=True)
-    class MyMessage(Message):
-        my_var: int
+@mock.patch("uuid.uuid4", return_value="1234-abcd")
+def test_message_init_uuid_set(*args):
+    message = DoSomething(my_var=1)
 
-    message = MyMessage(my_var=1)
-
-    assert message.uuid is not None
+    assert message.uuid == "1234-abcd"
 
 
 def test_message_str_regular():
-    @dataclasses.dataclass(kw_only=True)
-    class MyMessage(Message):
-        my_var: int
+    message = DoSomething(my_var=1)
 
-    message = MyMessage(my_var=1)
-
-    assert str(message) == f"<class 'tests.test_messages.test_message_str_regular.<locals>.MyMessage'> ({message.uuid})"
+    assert str(message) == f"<class 'testapp.messages.commands.my_commands.DoSomething'> ({message.uuid})"

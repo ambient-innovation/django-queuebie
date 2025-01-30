@@ -1,6 +1,5 @@
 import abc
 import uuid
-from dataclasses import dataclass
 
 
 class Message(abc.ABC):
@@ -8,12 +7,11 @@ class Message(abc.ABC):
     Base class for all commands and events.
     """
 
-    uuid = str
-    Context: dataclass
+    uuid: str
 
-    def __init__(self) -> None:
+    def __post_init__(self):
         super().__init__()
-
+        # Hier kannst du zusätzliche Initialisierungslogik hinzufügen, falls nötig
         self.uuid = str(uuid.uuid4())
 
     def __str__(self) -> str:
