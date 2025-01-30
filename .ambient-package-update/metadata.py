@@ -26,6 +26,7 @@ METADATA = PackageMetadata(
     license_year=2025,
     development_status=DEPLOYMENT_STATUS_BETA,
     has_migrations=False,
+    main_branch="main",
     readme_content=ReadmeContent(uses_internationalisation=True),
     dependencies=[
         f"Django>={SUPPORTED_DJANGO_VERSIONS[0]}",
