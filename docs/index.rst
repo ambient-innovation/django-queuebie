@@ -8,8 +8,8 @@ django-queuebie
    :caption: Contents:
 
    features/introduction.md
+   features/motivation.md
    features/setup.md
-   features/configuration.md
    features/getting-started.md
    features/settings.md
    features/changelog.rst

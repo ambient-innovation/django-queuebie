@@ -5,7 +5,7 @@
 [![Coding Style](https://img.shields.io/badge/code%20style-Ruff-000000.svg)](https://github.com/astral-sh/ruff)
 [![Documentation Status](https://readthedocs.org/projects/django-queuebie/badge/?version=latest)](https://django-queuebie.readthedocs.io/en/latest/?badge=latest)
 
-write me
+A simple message queue for commands and events (CQRS) for Django.
 
 * [PyPI](https://pypi.org/project/django-queuebie/)
 * [GitHub](https://github.com/ambient-innovation/django-queuebie)
@@ -15,7 +15,11 @@ write me
 
 ## Features
 
-write me
+* Split up your business logic in commands and events
+* Commands are imperatives telling your system what to do, events reflect that something has happened
+* Register light-weight functions via a decorator to listen to your commands and events
+* Message handlers receive the context of the message (command or event), providing an explicit API
+* No magic, no side-effects since the queue works synchronously
 
 ## Installation
 
