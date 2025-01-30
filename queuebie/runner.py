@@ -45,7 +45,7 @@ def _process_message(*, handler_list: list, message: [Command, Event]):
                 )
                 module = importlib.import_module(handler["module"])
                 handler_function = getattr(module, handler["name"])
-                handler_messages = handler_function(context=message.Context) or []
+                handler_messages = handler_function(context=message) or []
                 handler_messages = handler_messages if isinstance(handler_messages, list) else [handler_messages]
                 if len(handler_messages) > 0:
                     messages.extend(handler_messages)

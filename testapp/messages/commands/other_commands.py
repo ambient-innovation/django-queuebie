@@ -1,9 +1,8 @@
-from dataclasses import dataclass
+import dataclasses
 
 from queuebie.messages import Command
 
 
+@dataclasses.dataclass(kw_only=True)
 class SameNameCommand(Command):
-    @dataclass(kw_only=True)
-    class Context:
-        name: str
+    name: str

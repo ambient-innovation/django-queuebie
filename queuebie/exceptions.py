@@ -1,8 +1,3 @@
-class MessageContextWrongTypeError(RuntimeError):
-    def __init__(self, *, class_name: str):
-        super().__init__(f'Context must be of type "{class_name}.Context"')
-
-
 class RegisterWrongMessageTypeError(TypeError):
     def __init__(self, *, message_name: str, decoratee_name: str):
         super().__init__(

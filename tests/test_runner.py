@@ -14,7 +14,7 @@ from testapp.messages.events.my_events import SomethingHappened
 @pytest.mark.django_db
 @mock.patch.object(Logger, "info")
 def test_handle_message_queue_enqueues_next_messages(mocked_logger_info):
-    handle_message(messages=DoSomething(context=DoSomething.Context(my_var=1)))
+    handle_message(messages=DoSomething(my_var=1))
 
     # DoSomething triggers "SomethingHappened", so we assert that the whole queuing works
     assert mocked_logger_info.call_count == 2  # noqa: PLR2004
@@ -28,7 +28,7 @@ def test_handle_message_queue_enqueues_next_messages(mocked_logger_info):
 @mock.patch.object(Logger, "debug")
 def test_handle_message_error_in_handler(mocked_logger_debug):
     with pytest.raises(RuntimeError, match="Handler is broken."):
-        handle_message(messages=CriticalCommand(context=CriticalCommand.Context(my_var=0)))
+        handle_message(messages=CriticalCommand(my_var=0))
 
     assert mocked_logger_debug.call_count > 1
     assert (
@@ -42,7 +42,7 @@ def test_handle_message_error_in_handler(mocked_logger_debug):
 @pytest.mark.django_db
 @mock.patch("queuebie.runner._process_message")
 def test_handle_message_pass_single_message(mocked_handle_command):
-    handle_message(messages=DoSomething(context=DoSomething.Context(my_var=1)))
+    handle_message(messages=DoSomething(my_var=1))
 
     assert mocked_handle_command.call_count == 1
 
@@ -52,8 +52,8 @@ def test_handle_message_pass_single_message(mocked_handle_command):
 def test_handle_message_pass_message_list(mocked_handle_command):
     handle_message(
         messages=[
-            DoSomething(context=DoSomething.Context(my_var=1)),
-            SomethingHappened(context=SomethingHappened.Context(other_var=2)),
+            DoSomething(my_var=1),
+            SomethingHappened(other_var=2),
         ]
     )
 
@@ -82,7 +82,7 @@ def test_handle_message_other_command_with_same_name(mocked_handle_command, *arg
     decorator_2 = message_registry.register_command(command=OtherSameNameCommand)
     decorator_2(dummy_func)
 
-    handle_message(messages=SameNameCommand(context=SameNameCommand.Context(name="one")))
+    handle_message(messages=SameNameCommand(name="one"))
 
     assert mocked_handle_command.call_count == 1
     assert len(mocked_handle_command.call_args_list) == 1
@@ -91,7 +91,7 @@ def test_handle_message_other_command_with_same_name(mocked_handle_command, *arg
         {"module": "tests.test_runner", "name": "dummy_func"}
     ]
 
-    handle_message(messages=OtherSameNameCommand(context=OtherSameNameCommand.Context(name="two")))
+    handle_message(messages=OtherSameNameCommand(name="two"))
 
     assert mocked_handle_command.call_count == 2  # noqa: PLR2004
     assert len(mocked_handle_command.call_args_list) == 2  # noqa: PLR2004
@@ -109,7 +109,7 @@ def test_process_message_atomic_works(mocked_handle_command, *args):
         {"module": "testapp.handlers.commands.testapp", "name": "raise_exception"},
     ]
 
-    message = DoSomething(context=DoSomething.Context(my_var=1))
+    message = DoSomething(my_var=1)
 
     with pytest.raises(RuntimeError, match="Something is broken."):
         _process_message(handler_list=handler_list, message=message)

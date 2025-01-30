@@ -3,19 +3,16 @@ from dataclasses import dataclass
 from queuebie.messages import Command
 
 
+@dataclass(kw_only=True)
 class DoSomething(Command):
-    @dataclass(kw_only=True)
-    class Context:
-        my_var: int
+    my_var: int
 
 
+@dataclass(kw_only=True)
 class CriticalCommand(Command):
-    @dataclass(kw_only=True)
-    class Context:
-        my_var: int
+    my_var: int
 
 
+@dataclass(kw_only=True)
 class SameNameCommand(Command):
-    @dataclass(kw_only=True)
-    class Context:
-        name: str
+    name: str

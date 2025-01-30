@@ -1,9 +1,8 @@
-from dataclasses import dataclass
+import dataclasses
 
 from queuebie.messages import Event
 
 
+@dataclasses.dataclass(kw_only=True)
 class SomethingHappened(Event):
-    @dataclass(kw_only=True)
-    class Context:
-        other_var: int
+    other_var: int

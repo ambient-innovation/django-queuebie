@@ -1,15 +1,8 @@
 from queuebie.exceptions import (
     InvalidMessageTypeError,
-    MessageContextWrongTypeError,
     RegisterOutOfScopeCommandError,
     RegisterWrongMessageTypeError,
 )
-
-
-def test_message_context_wrong_type_error():
-    exception = MessageContextWrongTypeError(class_name="MyClass")
-
-    assert str(exception) == 'Context must be of type "MyClass.Context"'
 
 
 def test_register_wrong_message_type_error():

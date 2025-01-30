@@ -21,29 +21,30 @@ implicitly fetching data.
 from dataclasses import dataclass
 from queuebie.messages import Command
 
+import dataclasses
+
 
 # Example command
+@dataclasses.dataclass(kw_only=True)
 class BuyProduct(Command):
-    @dataclass(kw_only=True)
-    class Context:
-        product_id: int
-        customer_id: int
-        price: float
-        currency: str
+    product_id: int
+    customer_id: int
+    price: float
+    currency: str
 ```
 
 ```python
 # my_app/messages/events/product.py
 from dataclasses import dataclass
 from queuebie.messages import Event
+import dataclasses
 
 
 # Example event
+@dataclasses.dataclass(kw_only=True)
 class ProductBought(Event):
-    @dataclass(kw_only=True)
-    class Context:
-        product_id: int
-        customer_id: int
+    product_id: int
+    customer_id: int
 ```
 
 ## Creating handlers
@@ -68,14 +69,12 @@ from queuebie.messages import Event
 
 # Example handler
 @message_registry.register_command(BuyProduct)
-def handle_buy_product(context: BuyProduct.Context) -> Event:
+def handle_buy_product(context: BuyProduct) -> Event:
     # Here lives your business logic
 
     return ProductBought(
-        context=ProductBought.Context(
-            product_id=context.product_id,
-            customer_id=context.customer_id,
-        )
+        product_id=context.product_id,
+        customer_id=context.customer_id,
     )
 ```
 
@@ -90,12 +89,10 @@ place. This means Django views or some kind of API views.
 # Start queue and process messages
 handle_message(
     BuyProduct(
-        BuyProduct.Context(
-            product_id=product.id,
-            customer_id=customer.id,
-            price=12.99,
-            currency="EUR",
-        )
+        product_id=product.id,
+        customer_id=customer.id,
+        price=12.99,
+        currency="EUR",
     )
 )
 ```
