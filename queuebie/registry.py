@@ -11,7 +11,7 @@ from django.core.cache import cache
 from queuebie.exceptions import RegisterOutOfScopeCommandError, RegisterWrongMessageTypeError
 from queuebie.logger import get_logger
 from queuebie.messages import Command, Event
-from queuebie.settings import QUEUEBIE_APP_BASE_PATH, QUEUEBIE_CACHE_KEY, QUEUEBIE_STRICT_MODE
+from queuebie.settings import get_queuebie_app_base_path, get_queuebie_cache_key, get_queuebie_strict_mode
 from queuebie.utils import is_part_of_app, unique_append_to_inner_list
 
 
@@ -44,7 +44,7 @@ class MessageRegistry:
             if not (issubclass(command, Command)):
                 raise RegisterWrongMessageTypeError(message_name=command.__name__, decoratee_name=decoratee.__name__)
 
-            if QUEUEBIE_STRICT_MODE and not is_part_of_app(function=decoratee, class_type=command):
+            if get_queuebie_strict_mode() and not is_part_of_app(function=decoratee, class_type=command):
                 raise RegisterOutOfScopeCommandError(message_name=command.__name__, decoratee_name=decoratee.__name__)
 
             # Add decoratee to dependency list
@@ -98,7 +98,7 @@ class MessageRegistry:
             return
 
         # Project directory
-        project_path = QUEUEBIE_APP_BASE_PATH
+        project_path = get_queuebie_app_base_path()
         logger = get_logger()
 
         for app_config in apps.get_app_configs():
@@ -137,13 +137,13 @@ class MessageRegistry:
         logger.debug(f"{len(self.command_dict) + len(self.event_dict)} message handlers detected.\n")
 
         # Update cache
-        cache.set(QUEUEBIE_CACHE_KEY, json.dumps({"commands": self.command_dict, "events": self.event_dict}))
+        cache.set(get_queuebie_cache_key(), json.dumps({"commands": self.command_dict, "events": self.event_dict}))
 
     def _load_handlers_from_cache(self) -> tuple[dict, dict]:
         """
         Get registered handler definitions from Django cache
         """
-        cached_data = cache.get(QUEUEBIE_CACHE_KEY)
+        cached_data = cache.get(get_queuebie_cache_key())
         if cached_data is None:
             return {}, {}
         json_data = json.loads(cached_data)

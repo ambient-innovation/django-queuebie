@@ -13,3 +13,9 @@ class CriticalCommand(Command):
     @dataclass(kw_only=True)
     class Context:
         my_var: int
+
+
+class SameNameCommand(Command):
+    @dataclass(kw_only=True)
+    class Context:
+        name: str

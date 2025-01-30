@@ -21,7 +21,6 @@ def handle_message(messages: Message | list[Message]) -> None:
     handler_list = []
     while queue:
         message = queue.pop(0)
-        # TODO: test this with messages with the same name
         if isinstance(message, Command):
             handler_list = message_registry.command_dict.get(message.module_path(), [])
         else:
