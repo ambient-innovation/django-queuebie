@@ -18,7 +18,6 @@ def handle_message(messages: Message | list[Message]) -> None:
     # Run auto-registry
     message_registry.autodiscover()
 
-    handler_list = []
     while queue:
         message = queue.pop(0)
         if isinstance(message, Command):

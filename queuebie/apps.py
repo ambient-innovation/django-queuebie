@@ -12,4 +12,5 @@ class QueuebieConfig(AppConfig):
 
         # Register all decorated functions before they get imported by something else which will break the
         # registration process since decorators are only executed the first time
-        message_registry.autodiscover()
+        message_registry.autodiscover(registry_group="handlers.commands")
+        message_registry.autodiscover(registry_group="handlers.events")

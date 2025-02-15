@@ -7,7 +7,7 @@ from django.core.cache import cache
 from django.test import override_settings
 
 from queuebie import MessageRegistry
-from queuebie.exceptions import RegisterOutOfScopeCommandError
+from queuebie.exceptions import RegisterOutOfScopeCommandError, RegisterWrongMessageTypeError
 from queuebie.settings import get_queuebie_cache_key
 from testapp.messages.commands.my_commands import CriticalCommand, DoSomething
 from testapp.messages.events.my_events import SomethingHappened
@@ -65,7 +65,7 @@ def test_message_registry_register_command_wrong_type():
     decorator = message_registry.register_command(command=SomethingHappened)
 
     with pytest.raises(
-        TypeError,
+        RegisterWrongMessageTypeError,
         match='Trying to register message function of wrong type: "SomethingHappened" on handler "dummy_function".',
     ):
         decorator(dummy_function)
@@ -109,7 +109,7 @@ def test_message_registry_register_event_wrong_type():
     decorator = message_registry.register_event(event=DoSomething)
 
     with pytest.raises(
-        TypeError, match='Trying to register message function of wrong type: "DoSomething" on handler "dummy_function".'
+        RegisterWrongMessageTypeError, match='Trying to register message function of wrong type: "DoSomething" on handler "dummy_function".'
     ):
         decorator(dummy_function)
 
@@ -120,12 +120,12 @@ def test_message_autodiscover_regular():
     message_registry = MessageRegistry()
     message_registry.autodiscover()
 
-    # Assert one command registered
+    # Assert two commands registered
     assert len(message_registry.command_dict) == 2  # noqa: PLR2004
     assert DoSomething.module_path() in message_registry.command_dict.keys()
     assert CriticalCommand.module_path() in message_registry.command_dict.keys()
 
-    # Assert one handler registered
+    # Assert one handler for command "DoSomething" registered
     assert len(message_registry.command_dict[DoSomething.module_path()]) == 1
     assert {
         "module": "testapp.handlers.commands.testapp",
