@@ -93,8 +93,8 @@ lint.select = [
     "INP"      # Ban PEP-420 implicit namespace packages
 ]
 lint.ignore = [
-    'TD002', # Missing author in TODO
-    'TD003', # Missing issue link on the line following this TODO
+    "TD002", # Missing author in TODO
+    "TD003", # Missing issue link on the line following this TODO
 ]
 
 # Allow autofix for all enabled rules (when `--fix`) is provided.
@@ -179,26 +179,23 @@ line-ending = "auto"
   # Allow seemingly unused imports
   "F401",
 ]
-
 "**/tests/**/test_*.py" = [
   # Allow boolean positional params in tests (for assertIs())
   "FBT003",
 ]
-
 "scripts/*.py" = [
   # Checks for packages that are missing an __init__.py file
   "INP001",
 ]
-
 ".ambient-package-update/*.py" = [
   # Checks for packages that are missing an __init__.py file
   "INP001",
 ]
-
 "docs/*.py" = [
   # Checks for packages that are missing an __init__.py file
   "INP001",
 ]
+
 [tool.tox]
 legacy_tox_ini = """
 [testenv]

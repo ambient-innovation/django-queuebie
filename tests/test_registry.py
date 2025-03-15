@@ -10,7 +10,10 @@ from queuebie import MessageRegistry
 from queuebie.exceptions import RegisterOutOfScopeCommandError
 from queuebie.settings import get_queuebie_cache_key
 from testapp.messages.commands.my_commands import CriticalCommand, DoSomething
-from testapp.messages.events.my_events import SomethingHappened
+from testapp.messages.events.my_events import (
+    SomethingHappened,
+    SomethingHappenedThatWantsToBePersistedViaEvent,
+)
 from tests.helpers.commands import DoTestThings
 
 
@@ -121,7 +124,7 @@ def test_message_autodiscover_regular():
     message_registry.autodiscover()
 
     # Assert one command registered
-    assert len(message_registry.command_dict) == 2  # noqa: PLR2004
+    assert len(message_registry.command_dict) == 3  # noqa: PLR2004
     assert DoSomething.module_path() in message_registry.command_dict.keys()
     assert CriticalCommand.module_path() in message_registry.command_dict.keys()
 
@@ -132,11 +135,12 @@ def test_message_autodiscover_regular():
         "name": "handle_my_command",
     } == message_registry.command_dict[DoSomething.module_path()][0]
 
-    # Assert one event registered
-    assert len(message_registry.event_dict) == 1
+    # Assert two events registered
+    assert len(message_registry.event_dict) == 2  # noqa: PLR2004
     assert SomethingHappened.module_path() in message_registry.event_dict.keys()
+    assert SomethingHappenedThatWantsToBePersistedViaEvent.module_path() in message_registry.event_dict.keys()
 
-    # Assert one handler registered
+    # Assert two handlers registered
     assert len(message_registry.event_dict[SomethingHappened.module_path()]) == 1
     assert {"module": "testapp.handlers.events.testapp", "name": "handle_my_event"} == message_registry.event_dict[
         SomethingHappened.module_path()
