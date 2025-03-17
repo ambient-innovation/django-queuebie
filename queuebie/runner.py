@@ -41,7 +41,7 @@ def _process_message(*, handler_list: list, message: [Command, Event], block_db_
     logger = get_logger()
     messages = []
 
-    # TODO: sollte nicht die ganze chain atomic sein?
+    # TODO: should the whole chain be atomic and not just the handler?
     with transaction.atomic():
         for handler in handler_list:
             try:
