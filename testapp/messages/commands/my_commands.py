@@ -16,3 +16,8 @@ class CriticalCommand(Command):
 @dataclass(kw_only=True)
 class SameNameCommand(Command):
     name: str
+
+
+@dataclass(kw_only=True)
+class PersistSomething(Command):
+    any_var: str

@@ -3,12 +3,17 @@ from unittest import mock
 
 import pytest
 from django.contrib.auth.models import User
+from django.test import override_settings
 
 from queuebie import MessageRegistry
+from queuebie.database_blocker import DatabaseAccessDeniedError
 from queuebie.exceptions import InvalidMessageTypeError
 from queuebie.runner import _process_message, handle_message
-from testapp.messages.commands.my_commands import CriticalCommand, DoSomething, SameNameCommand
-from testapp.messages.events.my_events import SomethingHappened
+from testapp.messages.commands.my_commands import CriticalCommand, DoSomething, PersistSomething, SameNameCommand
+from testapp.messages.events.my_events import (
+    SomethingHappened,
+    SomethingHappenedThatWantsToBePersistedViaEvent,
+)
 
 
 @pytest.mark.django_db
@@ -66,6 +71,23 @@ def test_handle_message_pass_invalid_type():
 
 
 @pytest.mark.django_db
+def test_handle_message_command_with_db_hit_is_ok():
+    handle_message(messages=[PersistSomething(any_var="noodle")])
+
+
+@pytest.mark.django_db
+def test_handle_message_event_with_db_hit_fails():
+    with pytest.raises(DatabaseAccessDeniedError, match="Database access is disabled in this context"):
+        handle_message(messages=[SomethingHappenedThatWantsToBePersistedViaEvent(any_var=1)])
+
+
+@pytest.mark.django_db
+@override_settings(QUEUEBIE_STRICT_MODE=False)
+def test_handle_message_event_with_db_hit_ok_when_not_on_strict_mode(*args):
+    handle_message(messages=[SomethingHappenedThatWantsToBePersistedViaEvent(any_var=1)])
+
+
+@pytest.mark.django_db
 @mock.patch("queuebie.registry.get_queuebie_strict_mode", return_value=False)
 @mock.patch.object(MessageRegistry, "autodiscover")
 @mock.patch("queuebie.runner._process_message")
@@ -112,6 +134,6 @@ def test_process_message_atomic_works(mocked_handle_command, *args):
     message = DoSomething(my_var=1)
 
     with pytest.raises(RuntimeError, match="Something is broken."):
-        _process_message(handler_list=handler_list, message=message)
+        _process_message(handler_list=handler_list, message=message, block_db_access=False)
 
     assert User.objects.filter(username="username").exists() is False
