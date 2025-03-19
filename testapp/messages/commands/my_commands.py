@@ -21,3 +21,13 @@ class SameNameCommand(Command):
 @dataclass(kw_only=True)
 class PersistSomething(Command):
     any_var: str
+
+
+@dataclass(kw_only=True)
+class CreateUser(Command):
+    username: str
+
+
+@dataclass(kw_only=True)
+class RaiseRuntimeError(Command):
+    error_msg: str

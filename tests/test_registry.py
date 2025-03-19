@@ -124,7 +124,7 @@ def test_message_autodiscover_regular():
     message_registry.autodiscover()
 
     # Assert one command registered
-    assert len(message_registry.command_dict) == 3  # noqa: PLR2004
+    assert len(message_registry.command_dict) == 5  # noqa: PLR2004
     assert DoSomething.module_path() in message_registry.command_dict.keys()
     assert CriticalCommand.module_path() in message_registry.command_dict.keys()
 

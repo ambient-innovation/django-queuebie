@@ -5,7 +5,13 @@ from django.contrib.auth.models import User
 from queuebie import message_registry
 from queuebie.logger import get_logger
 from queuebie.messages import Event
-from testapp.messages.commands.my_commands import CriticalCommand, DoSomething, PersistSomething
+from testapp.messages.commands.my_commands import (
+    CreateUser,
+    CriticalCommand,
+    DoSomething,
+    PersistSomething,
+    RaiseRuntimeError,
+)
 from testapp.messages.events.my_events import SomethingHappened, SomethingHappenedThatWantsToBePersisted
 
 
@@ -29,9 +35,11 @@ def handle_critical_command(*, context: CriticalCommand) -> None:
         raise RuntimeError("Handler is broken.")  # noqa: TRY003
 
 
-def create_user(*args, **kwargs):
-    return User.objects.create_user(username="username")
+@message_registry.register_command(command=CreateUser)
+def create_user(context: CreateUser):
+    User.objects.create_user(username=context.username)
 
 
-def raise_exception(*args, **kwargs):
-    raise RuntimeError("Something is broken.")  # noqa: TRY003
+@message_registry.register_command(command=RaiseRuntimeError)
+def raise_exception(context: RaiseRuntimeError):
+    raise RuntimeError(context.error_msg)
