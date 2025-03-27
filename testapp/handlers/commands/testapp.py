@@ -23,7 +23,7 @@ def handle_my_command(*, context: DoSomething) -> list[Event] | Event:
 
 
 @message_registry.register_command(command=PersistSomething)
-def handle_something_that_needs_persistance(*, context: PersistSomething) -> Event:
+def handle_something_that_needs_persistence(*, context: PersistSomething) -> Event:
     User.objects.create(username="testuser" + str(randint(1, 100)))
 
     return SomethingHappenedThatWantsToBePersisted(any_var=1)
