@@ -43,3 +43,13 @@ def create_user(context: CreateUser):
 @message_registry.register_command(command=RaiseRuntimeError)
 def raise_exception(context: RaiseRuntimeError):
     raise RuntimeError(context.error_msg)
+
+
+class MyClass:
+    """
+    This is a test class since we observed the behaviour that in a similar setup, the "forced"
+    import was breaking mocking.
+    """
+
+    def process(self):
+        return 42

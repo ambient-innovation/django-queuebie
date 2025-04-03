@@ -1,5 +1,8 @@
 # Changelog
 
+* *0.3.1* (2025-03-19)
+  * Added a paranoid-ish test to check that the import logic isn't breaking any testing functionality
+
 * *0.3.0* (2025-03-19)
   * The whole queue iteration now is wrapped in a transaction atomic
 

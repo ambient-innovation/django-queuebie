@@ -9,6 +9,7 @@ from django.test import override_settings
 from queuebie import MessageRegistry
 from queuebie.exceptions import RegisterOutOfScopeCommandError
 from queuebie.settings import get_queuebie_cache_key
+from testapp.handlers.commands.testapp import MyClass
 from testapp.messages.commands.my_commands import CriticalCommand, DoSomething
 from testapp.messages.events.my_events import (
     SomethingHappened,
@@ -191,3 +192,16 @@ def test_message_autodiscover_load_handlers_from_cache_dummy_cache(*args):
 
     assert len(commands) == 0
     assert len(events) == 0
+
+
+@mock.patch.object(MyClass, "process")
+def test_registry_forced_import_doesnt_break_mocking(mocked_process):
+    """
+    This is a test for ensuring that the "forced" import isn't breaking mocking features.
+    """
+
+    def my_func():
+        return MyClass().process()
+
+    my_func()
+    mocked_process.assert_called_once()
