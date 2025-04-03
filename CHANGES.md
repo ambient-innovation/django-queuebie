@@ -1,5 +1,8 @@
 # Changelog
 
+**0.3.2** (2025-04-03)
+  * Maintenance updates via ambient-package-update
+
 * *0.3.1* (2025-03-19)
   * Added a paranoid-ish test to check that the import logic isn't breaking any testing functionality
 
