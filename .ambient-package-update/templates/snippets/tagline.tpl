@@ -1,1 +1,1 @@
-A simple message queue for commands and events (CQRS) for Django.
+A simple and synchronous message queue for commands and events for Django.

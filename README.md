@@ -5,7 +5,7 @@
 [![Coding Style](https://img.shields.io/badge/code%20style-Ruff-000000.svg)](https://github.com/astral-sh/ruff)
 [![Documentation Status](https://readthedocs.org/projects/django-queuebie/badge/?version=latest)](https://django-queuebie.readthedocs.io/en/latest/?badge=latest)
 
-A simple message queue for commands and events (CQRS) for Django.
+A simple and synchronous message queue for commands and events for Django.
 
 * [PyPI](https://pypi.org/project/django-queuebie/)
 * [GitHub](https://github.com/ambient-innovation/django-queuebie)

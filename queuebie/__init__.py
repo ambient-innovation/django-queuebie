@@ -1,8 +1,8 @@
-"""Simple message queue for commands and events (CQRS)"""
+"""A simple and synchronous message queue for commands and events for Django"""
 
-__version__ = "0.3.2"
+__version__ = "0.3.3"
 
 from queuebie.registry import MessageRegistry
 
-# Create global message registry
+# Initialise global message registry
 message_registry = MessageRegistry()
