@@ -1,5 +1,8 @@
 # Changelog
 
+**0.3.4** (2025-05-29)
+  * Maintenance updates via ambient-package-update
+
 **0.3.3** (2025-04-03)
   * Clarified package tagline
 
