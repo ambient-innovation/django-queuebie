@@ -86,7 +86,7 @@ class MessageRegistry:
 
         return decorator
 
-    def autodiscover(self) -> None:
+    def autodiscover(self) -> None:  # noqa: C901
         """
         Detects message registries which have been registered via the "register_*" decorator.
         """
