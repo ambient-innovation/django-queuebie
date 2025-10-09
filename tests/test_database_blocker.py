@@ -5,7 +5,7 @@ from queuebie.database_blocker import BlockDatabaseAccess, DatabaseAccessDeniedE
 
 
 def test_block_database_access_use_db():
-    with pytest.raises(DatabaseAccessDeniedError, match="Database access is disabled in this context."):
+    with pytest.raises(DatabaseAccessDeniedError, match=r"Database access is disabled in this context."):
         with BlockDatabaseAccess():
             User.objects.get(pk=1)
 
