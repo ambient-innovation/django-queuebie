@@ -113,7 +113,8 @@ def test_message_registry_register_event_wrong_type():
     decorator = message_registry.register_event(event=DoSomething)
 
     with pytest.raises(
-        TypeError, match=r'Trying to register message function of wrong type: "DoSomething" on handler "dummy_function".'
+        TypeError,
+        match=r'Trying to register message function of wrong type: "DoSomething" on handler "dummy_function".',
     ):
         decorator(dummy_function)
 
