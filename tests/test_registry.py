@@ -70,7 +70,7 @@ def test_message_registry_register_command_wrong_type():
 
     with pytest.raises(
         TypeError,
-        match='Trying to register message function of wrong type: "SomethingHappened" on handler "dummy_function".',
+        match=r'Trying to register message function of wrong type: "SomethingHappened" on handler "dummy_function".',
     ):
         decorator(dummy_function)
 
@@ -81,7 +81,7 @@ def test_message_registry_register_command_wrong_scope():
 
     with pytest.raises(
         RegisterOutOfScopeCommandError,
-        match='Trying to register a command from another scope/app: "DoSomething" on handler "dummy_function".',
+        match=r'Trying to register a command from another scope/app: "DoSomething" on handler "dummy_function".',
     ):
         decorator(dummy_function)
 
@@ -113,7 +113,8 @@ def test_message_registry_register_event_wrong_type():
     decorator = message_registry.register_event(event=DoSomething)
 
     with pytest.raises(
-        TypeError, match='Trying to register message function of wrong type: "DoSomething" on handler "dummy_function".'
+        TypeError,
+        match=r'Trying to register message function of wrong type: "DoSomething" on handler "dummy_function".',
     ):
         decorator(dummy_function)
 

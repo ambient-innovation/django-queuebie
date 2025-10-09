@@ -17,6 +17,7 @@ from testapp.messages.commands.my_commands import (
     RaiseRuntimeError,
     SameNameCommand,
 )
+from testapp.messages.commands.other_commands import SameNameCommand as OtherSameNameCommand
 from testapp.messages.events.my_events import (
     SomethingHappened,
     SomethingHappenedThatWantsToBePersistedViaEvent,
@@ -39,7 +40,7 @@ def test_handle_message_queue_enqueues_next_messages(mocked_logger_info):
 @pytest.mark.django_db
 @mock.patch.object(Logger, "debug")
 def test_handle_message_error_in_handler(mocked_logger_debug):
-    with pytest.raises(RuntimeError, match="Handler is broken."):
+    with pytest.raises(RuntimeError, match=r"Handler is broken."):
         handle_message(messages=CriticalCommand(my_var=0))
 
     assert mocked_logger_debug.call_count > 1
@@ -99,8 +100,6 @@ def test_handle_message_event_with_db_hit_ok_when_not_on_strict_mode(*args):
 @mock.patch.object(MessageRegistry, "autodiscover")
 @mock.patch("queuebie.runner._process_message")
 def test_handle_message_other_command_with_same_name(mocked_handle_command, *args):
-    from testapp.messages.commands.other_commands import SameNameCommand as OtherSameNameCommand
-
     def dummy_func(*args, **kwargs):
         return None
 
@@ -133,7 +132,7 @@ def test_handle_message_other_command_with_same_name(mocked_handle_command, *arg
 @pytest.mark.django_db
 @mock.patch("queuebie.registry.get_queuebie_strict_mode", return_value=False)
 def test_handle_message_atomic_works(*args):
-    with pytest.raises(RuntimeError, match="Something is broken."):
+    with pytest.raises(RuntimeError, match=r"Something is broken."):
         handle_message([CreateUser(username="username"), RaiseRuntimeError(error_msg="Something is broken.")])
 
     assert User.objects.filter(username="username").exists() is False
