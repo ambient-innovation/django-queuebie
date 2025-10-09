@@ -27,6 +27,7 @@ METADATA = PackageMetadata(
     development_status=DEPLOYMENT_STATUS_BETA,
     has_migrations=False,
     main_branch="main",
+    claim="A simple and synchronous message queue for commands and events for Django",
     readme_content=ReadmeContent(uses_internationalisation=True),
     dependencies=[
         f"Django>={SUPPORTED_DJANGO_VERSIONS[0]}",
