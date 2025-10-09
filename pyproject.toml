@@ -1,9 +1,9 @@
 [build-system]
-requires = ["flit_core>=3.4"]
-build-backend = "flit_core.buildapi"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
 [project]
-name = "django-queuebie"
+name = "queuebie"
 authors = [
     {'name' = 'Ambient Digital', 'email' = 'hello@ambient.digital'},
 ]
@@ -27,34 +27,27 @@ classifiers = [
     "Programming Language :: Python :: 3.13",
     "Topic :: Utilities",
 ]
-dynamic = ["version", "description"]
+dynamic = ["version"]
+description = "A simple and synchronous message queue for commands and events for Django"
 license = {"file" = "LICENSE.md"}
+requires-python = ">=3.10"
 dependencies = [
     'Django>=4.2',
 ]
 
-
-
-
-[project.optional-dependencies]
+[dependency-groups]
 dev = [
-   'typer~=0.12',
-   'pytest-django~=4.9',
-   'pytest-mock~=3.14',
-   'coverage~=7.6',
-   'pre-commit~=4.2',
-   'ruff~=0.11',
-   'sphinx~=7.1',
-   'sphinx-rtd-theme~=2.0',
-   'm2r2==0.3.3.post2',
-   'mistune<2.0.0',
-   'flit~=3.12',
-   'keyring~=25.6',
+   'typer~=0.19',
+   'pytest-cov~=7.0',
+   'pytest-django~=4.11',
+   'pytest-mock~=3.15',
+   'pre-commit~=4.3',
+   'sphinx~=7.4',
+   'sphinx-rtd-theme~=3.0',
+   'm2r2~=0.3',
+   'uv~=0.9',
    'ambient-package-update',
 ]
-
-[tool.flit.module]
-name = "queuebie"
 
 [project.urls]
 'Homepage' = 'https://github.com/ambient-innovation/django-queuebie/'
@@ -92,6 +85,7 @@ lint.select = [
     "ERA",     # Commented out code
     "INP",     # Ban PEP-420 implicit namespace packages
     "C90",     # McCabe code complexity
+    "FURB",    # Refurbish Python code
 ]
 lint.ignore = [
     "TD002", # Missing author in TODO
@@ -127,6 +121,7 @@ lint.fixable = [
     "ERA",     # Commented out code
     "INP",     # Ban PEP-420 implicit namespace packages
     "C90",     # McCabe code complexity
+    "FURB",    # Refurbish Python code
 ]
 lint.unfixable = []
 
@@ -160,8 +155,8 @@ line-length = 120
 # Allow unused variables when underscore-prefixed.
 lint.dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
 
-# Assume Python 3.12
-target-version = "py312"
+# Assume Python 3.13
+target-version = "py313"
 
 [tool.ruff.format]
 # Like Black, use double quotes for strings.
@@ -208,7 +203,7 @@ deps =
     django52: Django==5.2.*
 extras = dev,
 commands =
-    coverage run -m pytest --ds settings tests
+     pytest --cov=django_removals --cov-report=term --cov-report=xml --ds settings test
 
 [gh-actions]
 python =
@@ -258,3 +253,6 @@ source = [
     "queuebie",
     ".tox/**/site-packages",
 ]
+
+[tool.hatch.version]
+path = "queuebie/__init__.py"
