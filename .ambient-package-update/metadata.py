@@ -4,6 +4,7 @@ from ambient_package_update.metadata.constants import (
     DEV_DEPENDENCIES,
     LICENSE_MIT,
     SUPPORTED_DJANGO_VERSIONS,
+    SUPPORTED_PYTHON_VERSIONS,
 )
 from ambient_package_update.metadata.maintainer import PackageMaintainer
 from ambient_package_update.metadata.package import PackageMetadata
@@ -33,12 +34,7 @@ METADATA = PackageMetadata(
         f"Django>={SUPPORTED_DJANGO_VERSIONS[0]}",
     ],
     supported_django_versions=SUPPORTED_DJANGO_VERSIONS,
-    supported_python_versions=[
-        "3.10",
-        "3.11",
-        "3.12",
-        "3.13",
-    ],
+    supported_python_versions=SUPPORTED_PYTHON_VERSIONS,
     optional_dependencies={
         "dev": [
             *DEV_DEPENDENCIES,
