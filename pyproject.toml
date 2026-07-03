@@ -21,16 +21,16 @@ classifiers = [
     "Operating System :: OS Independent",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Topic :: Utilities",
 ]
 dynamic = ["version"]
 description = "A simple and synchronous message queue for commands and events for Django"
 license = {"file" = "LICENSE.md"}
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 dependencies = [
     'Django>=4.2',
 ]
@@ -157,7 +157,7 @@ line-length = 120
 lint.dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
 
 # Match the minimum supported Python version (mirrors requires-python above)
-target-version = "py310"
+target-version = "py311"
 
 [tool.ruff.format]
 # Like Black, use double quotes for strings.
@@ -218,10 +218,10 @@ deps = ["Django==5.2.*"]
 deps = ["Django==6.0.*"]
 
 [tool.tox.gh_actions.python]
-"3.10" = "py310"
 "3.11" = "py311"
 "3.12" = "py312"
 "3.13" = "py313"
+"3.14" = "py314"
 
 [tool.pytest.ini_options]
 python_files = [
