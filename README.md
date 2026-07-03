@@ -9,7 +9,7 @@ A simple and synchronous message queue for commands and events for Django.
 
 [PyPI](https://pypi.org/project/django-queuebie/) • [GitHub](https://github.com/ambient-innovation/django-queuebie) • [Full documentation](https://django-queuebie.readthedocs.io/en/latest/index.html)
 
-Creator & Maintainer: [Ambient Digital](https://ambient.digital/)
+Creator & Maintainer: [Beyonder Deutschland](https://beyonder.de/)
 
 ## Features
 
