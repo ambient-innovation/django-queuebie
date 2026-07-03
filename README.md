@@ -9,7 +9,7 @@ A simple and synchronous message queue for commands and events for Django.
 
 [PyPI](https://pypi.org/project/django-queuebie/) • [GitHub](https://github.com/ambient-innovation/django-queuebie) • [Full documentation](https://django-queuebie.readthedocs.io/en/latest/index.html)
 
-Creator & Maintainer: [Ambient Digital](https://ambient.digital/)
+Creator & Maintainer: [Beyonder Deutschland](https://beyonder.de/)
 
 ## Features
 
@@ -26,7 +26,6 @@ from queuebie.runner import handle_message
 from queuebie.messages import Command, Event
 from queuebie import message_registry
 
-
 # Example command
 @dataclasses.dataclass(kw_only=True)
 class BuyProduct(Command):
@@ -35,13 +34,11 @@ class BuyProduct(Command):
     price: float
     currency: str
 
-
 # Example event
 @dataclasses.dataclass(kw_only=True)
 class ProductBought(Event):
     product_id: int
     customer_id: int
-
 
 # Example handler
 @message_registry.register_command(BuyProduct)
@@ -52,7 +49,6 @@ def handle_buy_product(context: BuyProduct) -> Event:
         product_id=context.product_id,
         customer_id=context.customer_id,
     )
-
 
 # Start queue and process messages
 handle_message(
