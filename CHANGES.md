@@ -1,5 +1,16 @@
 # Changelog
 
+**0.6.0** (2026-09-08)
+  * Auto-discovery now walks the whole subtree of every local Django app, so `handlers/commands` and `handlers/events`
+    directories may live in sub-packages instead of only at the app root
+  * Added the setting `QUEUEBIE_EXCLUDED_DIRECTORIES` (default `{"tests", "migrations", "__pycache__"}`) to keep
+    handler-shaped directories out of the auto-discovery
+  * **Breaking change:** Strict mode compares the package owning the `handlers/` or `messages/` directory instead of
+    the Django app. Handlers and commands outside any installed app used to pass this check unconditionally and are
+    now validated; nested layouts get the boundary enforced they always described
+  * **Breaking change:** Replaced `queuebie.utils.is_part_of_app()` with `queuebie.utils.is_same_scope()` and
+    `queuebie.utils.message_scope()`
+
 **0.5.0** (2026-08-27)
   * Added support for Django 6.1
   * **Breaking change:** Dropped support for Django 4.2, whose extended support ended in April 2026

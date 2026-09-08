@@ -4,6 +4,7 @@ from django.test import override_settings
 from queuebie.settings import (
     get_queuebie_app_base_path,
     get_queuebie_cache_key,
+    get_queuebie_excluded_directories,
     get_queuebie_logger_name,
     get_queuebie_strict_mode,
 )
@@ -43,3 +44,12 @@ def test_get_queuebie_strict_mode_is_set():
 
 def test_get_queuebie_strict_mode_default_used():
     assert get_queuebie_strict_mode() is True
+
+
+@override_settings(QUEUEBIE_EXCLUDED_DIRECTORIES={"fixtures"})
+def test_get_queuebie_excluded_directories_is_set():
+    assert get_queuebie_excluded_directories() == {"fixtures"}
+
+
+def test_get_queuebie_excluded_directories_default_used():
+    assert get_queuebie_excluded_directories() == {"tests", "migrations", "__pycache__"}

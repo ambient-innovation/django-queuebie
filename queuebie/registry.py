@@ -1,7 +1,6 @@
 import dataclasses
 import importlib
 import json
-import os
 import sys
 from pathlib import Path
 
@@ -11,8 +10,13 @@ from django.core.cache import cache
 from queuebie.exceptions import RegisterOutOfScopeCommandError, RegisterWrongMessageTypeError
 from queuebie.logger import get_logger
 from queuebie.messages import Command, Event
-from queuebie.settings import get_queuebie_app_base_path, get_queuebie_cache_key, get_queuebie_strict_mode
-from queuebie.utils import is_part_of_app, unique_append_to_inner_list
+from queuebie.settings import (
+    get_queuebie_app_base_path,
+    get_queuebie_cache_key,
+    get_queuebie_excluded_directories,
+    get_queuebie_strict_mode,
+)
+from queuebie.utils import is_same_scope, unique_append_to_inner_list
 
 
 @dataclasses.dataclass(kw_only=True)
@@ -44,7 +48,7 @@ class MessageRegistry:
             if not (issubclass(command, Command)):
                 raise RegisterWrongMessageTypeError(message_name=command.__name__, decoratee_name=decoratee.__name__)
 
-            if get_queuebie_strict_mode() and not is_part_of_app(function=decoratee, class_type=command):
+            if get_queuebie_strict_mode() and not is_same_scope(function=decoratee, class_type=command):
                 raise RegisterOutOfScopeCommandError(message_name=command.__name__, decoratee_name=decoratee.__name__)
 
             # Add decoratee to dependency list
@@ -101,6 +105,8 @@ class MessageRegistry:
         project_path = get_queuebie_app_base_path()
         logger = get_logger()
 
+        excluded_directories = get_queuebie_excluded_directories()
+
         for app_config in apps.get_app_configs():
             app_path = Path(app_config.path).resolve()
 
@@ -109,20 +115,22 @@ class MessageRegistry:
                 continue
 
             for message_type in ("commands", "events"):
-                try:
-                    for module in os.listdir(app_path / "handlers" / message_type):
-                        if module[-3:] != ".py":
-                            continue
-                        module_name = module.replace(".py", "")
-                        module_path = f"{app_config.name}.handlers.{message_type}.{module_name}"
+                for handler_path in sorted(app_path.rglob(f"handlers/{message_type}")):
+                    package_parts = handler_path.relative_to(app_path).parts
+
+                    # Skip handler directories living inside an excluded directory
+                    if excluded_directories.intersection(package_parts):
+                        continue
+
+                    package_path = ".".join(package_parts)
+                    for module_file in sorted(handler_path.glob("*.py")):
+                        module_path = f"{app_config.name}.{package_path}.{module_file.stem}"
                         sys_module = sys.modules.get(module_path)
                         if sys_module:
                             importlib.reload(sys_module)
                         else:
                             importlib.import_module(module_path)
                         logger.debug(f'"{module_path}" imported.')
-                except FileNotFoundError:
-                    pass
 
         # Log to shell which functions have been detected
         logger.debug("Message autodiscovery running for commands...")

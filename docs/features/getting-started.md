@@ -52,14 +52,20 @@ class ProductBought(Event):
 Here's an example of a simple handler function. By design, these are functions and not objects to keep it as simple,
 understandable and testable as possible.
 
-They have to live inside your Django app in `my_app/handlers/commands/[your_filename].py` or
-respectively `handlers/events/[your_filename].py` for the auto-discovery to find it.
+They have to live in a `handlers/commands/[your_filename].py` or respectively `handlers/events/[your_filename].py`
+directory for the auto-discovery to find them. Such a directory may sit at any depth below the root of a Django app,
+so `my_app/handlers/commands/product.py` and `my_app/shipping/handlers/commands/product.py` both work. Directories
+listed in `QUEUEBIE_EXCLUDED_DIRECTORIES` are skipped.
 
 A handler becomes a handler when three conditions are met:
 
 * The function is registered as such via one of the two decorators `register_command` and `register_event`
-* The function lives within `my_app/handlers/commands/` or `my_app/handlers/events/`
+* The function lives within a `handlers/commands/` or `handlers/events/` directory inside one of your Django apps
 * The function takes a message (command or event) and returns optionally the other type of message (event or command).
+
+The package owning that `handlers/` directory is the handler's *scope*. In strict mode, a command handler may only
+handle commands whose `messages/` directory has the same owner. See
+[QUEUEBIE_STRICT_MODE](settings.md#queuebie_strict_mode) for the details.
 
 ```python
 # my_app/handlers/commands/product.py

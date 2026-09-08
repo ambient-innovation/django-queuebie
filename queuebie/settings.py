@@ -27,6 +27,13 @@ def get_queuebie_logger_name() -> str:
 
 def get_queuebie_strict_mode() -> bool:
     """
-    Determines if commands are allowed to be imported across Django app borders.
+    Determines if commands are allowed to be handled outside the scope they are defined in.
     """
     return getattr(settings, "QUEUEBIE_STRICT_MODE", True)
+
+
+def get_queuebie_excluded_directories() -> set[str]:
+    """
+    Directory names which are skipped when searching for handler modules.
+    """
+    return set(getattr(settings, "QUEUEBIE_EXCLUDED_DIRECTORIES", {"tests", "migrations", "__pycache__"}))
