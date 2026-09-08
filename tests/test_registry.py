@@ -176,7 +176,7 @@ def test_message_autodiscover_regular():
     message_registry.autodiscover()
 
     # Assert one command registered
-    assert len(message_registry.command_dict) == 6  # noqa: PLR2004
+    assert len(message_registry.command_dict) == 7  # noqa: PLR2004
     assert DoSomething.module_path() in message_registry.command_dict.keys()
     assert CriticalCommand.module_path() in message_registry.command_dict.keys()
 
@@ -218,6 +218,19 @@ def test_message_autodiscover_nested_handlers():
     } == message_registry.event_dict[SomethingNestedHappened.module_path()][0]
 
 
+def test_message_autodiscover_does_not_duplicate_packages():
+    """
+    Importing a handler package as "<package>.__init__" would create a second module object next to the package.
+    """
+    cache.clear()
+
+    message_registry = MessageRegistry()
+    message_registry.autodiscover()
+
+    assert "testapp.handlers.commands" in sys.modules
+    assert "testapp.handlers.commands.__init__" not in sys.modules
+
+
 def test_message_autodiscover_excluded_directory_not_imported():
     cache.clear()
 
@@ -238,8 +251,9 @@ def test_message_autodiscover_excluded_directories_configurable():
 
         assert DECOY_COMMAND_PATH in message_registry.command_dict.keys()
     finally:
-        # Keep the deliberately discovered decoy out of the interpreter for the other tests
+        # Keep the deliberately discovered decoy out of the interpreter and the cache for the other tests
         sys.modules.pop(DECOY_HANDLER_MODULE, None)
+        cache.clear()
 
 
 @mock.patch("queuebie.registry.get_queuebie_app_base_path", return_value=Path("/some/path"))

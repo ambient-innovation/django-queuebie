@@ -1,6 +1,7 @@
 import dataclasses
 import importlib
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -90,7 +91,7 @@ class MessageRegistry:
 
         return decorator
 
-    def autodiscover(self) -> None:  # noqa: C901
+    def autodiscover(self) -> None:
         """
         Detects message registries which have been registered via the "register_*" decorator.
         """
@@ -114,23 +115,22 @@ class MessageRegistry:
             if project_path not in app_path.parents:
                 continue
 
-            for message_type in ("commands", "events"):
-                for handler_path in sorted(app_path.rglob(f"handlers/{message_type}")):
-                    package_parts = handler_path.relative_to(app_path).parts
+            for directory, directory_names, file_names in os.walk(app_path):
+                # Excluded directories are pruned from the walk so their subtrees are never visited
+                directory_names[:] = sorted(name for name in directory_names if name not in excluded_directories)
 
-                    # Skip handler directories living inside an excluded directory
-                    if excluded_directories.intersection(package_parts):
+                current_path = Path(directory)
+                if current_path.name not in ("commands", "events") or current_path.parent.name != "handlers":
+                    continue
+
+                package_path = f"{app_config.name}.{'.'.join(current_path.relative_to(app_path).parts)}"
+
+                # Importing the package covers handlers registered in its "__init__.py"
+                self._import_handler_module(module_path=package_path)
+                for file_name in sorted(file_names):
+                    if not file_name.endswith(".py") or file_name == "__init__.py":
                         continue
-
-                    package_path = ".".join(package_parts)
-                    for module_file in sorted(handler_path.glob("*.py")):
-                        module_path = f"{app_config.name}.{package_path}.{module_file.stem}"
-                        sys_module = sys.modules.get(module_path)
-                        if sys_module:
-                            importlib.reload(sys_module)
-                        else:
-                            importlib.import_module(module_path)
-                        logger.debug(f'"{module_path}" imported.')
+                    self._import_handler_module(module_path=f"{package_path}.{file_name[:-3]}")
 
         # Log to shell which functions have been detected
         logger.debug("Message autodiscovery running for commands...")
@@ -146,6 +146,18 @@ class MessageRegistry:
 
         # Update cache
         cache.set(get_queuebie_cache_key(), json.dumps({"commands": self.command_dict, "events": self.event_dict}))
+
+    def _import_handler_module(self, *, module_path: str) -> None:
+        """
+        Imports a module containing message handlers, reloading it if it was imported before.
+        """
+        sys_module = sys.modules.get(module_path)
+        if sys_module:
+            importlib.reload(sys_module)
+        else:
+            importlib.import_module(module_path)
+
+        get_logger().debug(f'"{module_path}" imported.')
 
     def _load_handlers_from_cache(self) -> tuple[dict, dict]:
         """

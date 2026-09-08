@@ -1,4 +1,6 @@
+import pytest
 from django.conf import settings
+from django.core.exceptions import ImproperlyConfigured
 from django.test import override_settings
 
 from queuebie.settings import (
@@ -53,3 +55,12 @@ def test_get_queuebie_excluded_directories_is_set():
 
 def test_get_queuebie_excluded_directories_default_used():
     assert get_queuebie_excluded_directories() == {"tests", "migrations", "__pycache__"}
+
+
+@override_settings(QUEUEBIE_EXCLUDED_DIRECTORIES="tests")
+def test_get_queuebie_excluded_directories_string_not_allowed():
+    with pytest.raises(
+        ImproperlyConfigured,
+        match=r"QUEUEBIE_EXCLUDED_DIRECTORIES has to be a collection of directory names, not a string.",
+    ):
+        get_queuebie_excluded_directories()

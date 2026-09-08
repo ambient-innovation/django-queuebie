@@ -1,6 +1,7 @@
 from pathlib import Path
 
 from django.conf import settings
+from django.core.exceptions import ImproperlyConfigured
 
 
 def get_queuebie_app_base_path() -> Path | str:
@@ -36,4 +37,12 @@ def get_queuebie_excluded_directories() -> set[str]:
     """
     Directory names which are skipped when searching for handler modules.
     """
-    return set(getattr(settings, "QUEUEBIE_EXCLUDED_DIRECTORIES", {"tests", "migrations", "__pycache__"}))
+    excluded_directories = getattr(settings, "QUEUEBIE_EXCLUDED_DIRECTORIES", {"tests", "migrations", "__pycache__"})
+
+    # A string would decay into a set of single characters, silently excluding the wrong directories
+    if isinstance(excluded_directories, str):
+        raise ImproperlyConfigured(  # noqa: TRY003
+            "QUEUEBIE_EXCLUDED_DIRECTORIES has to be a collection of directory names, not a string."
+        )
+
+    return set(excluded_directories)

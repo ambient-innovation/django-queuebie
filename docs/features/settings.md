@@ -65,6 +65,9 @@ truncate the scope.
 | `apps.shipping.handlers.commands.shipment`           | `apps.shipping`          |
 | `apps.logistics.billing.handlers.commands.invoice`   | `apps.logistics.billing` |
 
+A module which lives in neither directory has no owning package, so its full module path becomes its scope. Such a
+command matches no handler - keep your commands in a `messages/` directory.
+
 A command handler may only handle commands of its own scope. For the common layout - one `handlers/` directory at the
 root of a Django app - the scope is that app, so nothing changes. If you organise a Django app into sub-packages, the
 boundary follows those sub-packages instead.

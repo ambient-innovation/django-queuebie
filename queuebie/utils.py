@@ -9,7 +9,8 @@ def message_scope(*, module_path: str) -> str:
     Falls back to the full module path for modules outside such a directory.
     """
     parts = module_path.split(".")
-    markers = [index for index, part in enumerate(parts) if part in SCOPE_MARKERS]
+    # The last segment is the module itself, so a module called "messages.py" is not a marker
+    markers = [index for index, part in enumerate(parts[:-1]) if part in SCOPE_MARKERS]
 
     return ".".join(parts[: markers[-1]]) if markers else module_path
 

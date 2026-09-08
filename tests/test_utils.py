@@ -18,6 +18,14 @@ def test_message_scope_last_marker_wins():
     assert message_scope(module_path="apps.messages.shipping.handlers.commands.invoice") == "apps.messages.shipping"
 
 
+def test_message_scope_module_named_like_marker():
+    """
+    The trailing segment is the module itself and must not be mistaken for the owning directory.
+    """
+    assert message_scope(module_path="apps.shipping.handlers.commands.messages") == "apps.shipping"
+    assert message_scope(module_path="apps.shipping.messages.commands.handlers") == "apps.shipping"
+
+
 def test_message_scope_without_marker():
     assert message_scope(module_path="tests.helpers.commands") == "tests.helpers.commands"
 

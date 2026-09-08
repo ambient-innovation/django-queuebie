@@ -6,8 +6,12 @@
   * Added the setting `QUEUEBIE_EXCLUDED_DIRECTORIES` (default `{"tests", "migrations", "__pycache__"}`) to keep
     handler-shaped directories out of the auto-discovery
   * **Breaking change:** Strict mode compares the package owning the `handlers/` or `messages/` directory instead of
-    the Django app. Handlers and commands outside any installed app used to pass this check unconditionally and are
-    now validated; nested layouts get the boundary enforced they always described
+    the Django app. Nested layouts get the boundary enforced they always described, and two cases which used to pass
+    the check unconditionally are now validated:
+    * handlers and commands living outside any installed Django app
+    * commands living inside an app but outside a `messages/` directory - a command in, say,
+      `my_app/domain/orders/commands.py` has no owning `messages/` directory, so its scope is its full module path
+      and no handler matches it. Move such commands into a `messages/` directory or turn strict mode off
   * **Breaking change:** Replaced `queuebie.utils.is_part_of_app()` with `queuebie.utils.is_same_scope()` and
     `queuebie.utils.message_scope()`
 
