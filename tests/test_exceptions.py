@@ -40,13 +40,28 @@ def test_invalid_excluded_directories_error():
     assert str(exception) == "MY_SETTING has to be a collection of directory names, not a string."
 
 
-def test_invalid_excluded_directories_error_survives_pickling():
+def test_exceptions_survive_pickling():
     """
-    Unpickling replays "args" through __init__, so the exception has to accept its own rendered message.
+    Unpickling replays "args" through __init__, so every exception has to accept its own rendered message.
     Frameworks which ship exceptions between processes rely on that.
     """
-    exception = InvalidExcludedDirectoriesError(setting_name="MY_SETTING")
+    exceptions = (
+        RegisterWrongMessageTypeError(message_name="Message", decoratee_name="Decoratee"),
+        RegisterOutOfScopeCommandError(
+            message_name="Message",
+            message_scope="apps.warband.faction",
+            decoratee_name="Decoratee",
+            decoratee_scope="apps.warband.skirmish",
+        ),
+        InvalidMessageTypeError(class_name="MyClass"),
+        InvalidExcludedDirectoriesError(setting_name="MY_SETTING"),
+    )
 
-    unpickled_exception = pickle.loads(pickle.dumps(exception))
+    for exception in exceptions:
+        assert str(pickle.loads(pickle.dumps(exception))) == str(exception)
 
-    assert str(unpickled_exception) == str(exception)
+
+def test_invalid_excluded_directories_error_names_the_main_setting_by_default():
+    assert str(InvalidExcludedDirectoriesError()) == (
+        "QUEUEBIE_EXCLUDED_DIRECTORIES has to be a collection of directory names, not a string."
+    )

@@ -65,7 +65,8 @@ QUEUEBIE_DEFAULT_EXCLUDED_DIRECTORIES = {
 
 You can overwrite it, but you probably don't want to - use `QUEUEBIE_EXCLUDED_DIRECTORIES` to add names and leave
 this one alone. Overwriting is the way to get one of these directories searched after all, for instance if your
-handlers really do live under `tests/`.
+handlers really do live under `tests/`. Note that an overwritten list is frozen: names a later queuebie release adds
+to the built-in list won't reach your project.
 
 ## QUEUEBIE_STRICT_MODE
 
@@ -88,8 +89,9 @@ truncate the scope.
 | `apps.shipping.handlers.commands.shipment`           | `apps.shipping`          |
 | `apps.logistics.billing.handlers.commands.invoice`   | `apps.logistics.billing` |
 
-A module which lives in neither directory has no owning package, so its full module path becomes its scope. Such a
-command matches no handler - keep your commands in a `messages/` directory.
+A module which lives in neither directory has no owning package, so its full module path becomes its scope. Only a
+handler in that very module shares it; registering one from anywhere else raises `RegisterOutOfScopeCommandError` at
+import time. Keep your commands in a `messages/` directory.
 
 A command handler may only handle commands of its own scope. For the common layout - one `handlers/` directory at the
 root of a Django app - the scope is that app, so nothing changes. If you organise a Django app into sub-packages, the
