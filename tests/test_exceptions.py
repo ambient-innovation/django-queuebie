@@ -1,3 +1,5 @@
+import pickle
+
 from queuebie.exceptions import (
     InvalidExcludedDirectoriesError,
     InvalidMessageTypeError,
@@ -36,3 +38,15 @@ def test_invalid_excluded_directories_error():
     exception = InvalidExcludedDirectoriesError(setting_name="MY_SETTING")
 
     assert str(exception) == "MY_SETTING has to be a collection of directory names, not a string."
+
+
+def test_invalid_excluded_directories_error_survives_pickling():
+    """
+    Unpickling replays "args" through __init__, so the exception has to accept its own rendered message.
+    Frameworks which ship exceptions between processes rely on that.
+    """
+    exception = InvalidExcludedDirectoriesError(setting_name="MY_SETTING")
+
+    unpickled_exception = pickle.loads(pickle.dumps(exception))
+
+    assert str(unpickled_exception) == str(exception)
