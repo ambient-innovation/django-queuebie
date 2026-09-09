@@ -1,5 +1,30 @@
 # Changelog
 
+**0.6.0** (2026-09-09)
+  * Auto-discovery now walks the whole subtree of every local Django app, so `handlers/commands` and `handlers/events`
+    directories may live in sub-packages instead of only at the app root
+  * Auto-discovery skips the directory names which occur inside Django apps but never hold handlers -
+    `__pycache__`, `fixtures`, `locale`, `media`, `migrations`, `node_modules`, `static`, `templates` and `tests`.
+    `QUEUEBIE_DEFAULT_EXCLUDED_DIRECTORIES` holds that list and can be overwritten
+  * Added the setting `QUEUEBIE_EXCLUDED_DIRECTORIES` for project-specific directory names. It is added to the list
+    above instead of replacing it
+  * **Breaking change:** Strict mode compares the package owning the `handlers/` or `messages/` directory instead of
+    the Django app. Nested layouts get the boundary enforced they always described, and two cases which used to pass
+    the check unconditionally are now validated:
+    * handlers and commands living outside any installed Django app
+    * commands living inside an app but outside a `messages/` directory - a command in, say,
+      `my_app/domain/orders/commands.py` has no owning `messages/` directory, so its scope is its full module path,
+      which only a handler in that same module can share. Registering a handler from anywhere else raises
+      `RegisterOutOfScopeCommandError` at import time. Move such commands into a `messages/` directory or turn
+      strict mode off
+  * **Breaking change:** Replaced `queuebie.utils.is_part_of_app()` with `queuebie.utils.is_same_scope()` and
+    `queuebie.utils.message_scope()`
+  * **Breaking change:** `RegisterOutOfScopeCommandError` now names both scopes instead of only the command and the
+    handler, so a mismatch between two sub-packages of the same app can be read off the message
+  * Handlers are now registered in a deterministic order - the handler package first, then its modules sorted by
+    name. Where a message has more than one handler, and since the bus is synchronous, that order is observable and
+    may differ from the one the file system happened to yield before
+
 **0.5.0** (2026-08-27)
   * Added support for Django 6.1
   * **Breaking change:** Dropped support for Django 4.2, whose extended support ended in April 2026

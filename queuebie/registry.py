@@ -11,8 +11,15 @@ from django.core.cache import cache
 from queuebie.exceptions import RegisterOutOfScopeCommandError, RegisterWrongMessageTypeError
 from queuebie.logger import get_logger
 from queuebie.messages import Command, Event
-from queuebie.settings import get_queuebie_app_base_path, get_queuebie_cache_key, get_queuebie_strict_mode
-from queuebie.utils import is_part_of_app, unique_append_to_inner_list
+from queuebie.settings import (
+    get_queuebie_app_base_path,
+    get_queuebie_cache_key,
+    get_queuebie_excluded_directories,
+    get_queuebie_strict_mode,
+)
+from queuebie.utils import HANDLERS_DIRECTORY_NAME, is_same_scope, message_scope, unique_append_to_inner_list
+
+MESSAGE_TYPE_DIRECTORY_NAMES = ("commands", "events")
 
 
 @dataclasses.dataclass(kw_only=True)
@@ -44,8 +51,13 @@ class MessageRegistry:
             if not (issubclass(command, Command)):
                 raise RegisterWrongMessageTypeError(message_name=command.__name__, decoratee_name=decoratee.__name__)
 
-            if get_queuebie_strict_mode() and not is_part_of_app(function=decoratee, class_type=command):
-                raise RegisterOutOfScopeCommandError(message_name=command.__name__, decoratee_name=decoratee.__name__)
+            if get_queuebie_strict_mode() and not is_same_scope(function=decoratee, class_type=command):
+                raise RegisterOutOfScopeCommandError(
+                    message_name=command.__name__,
+                    message_scope=message_scope(module_path=command.__module__),
+                    decoratee_name=decoratee.__name__,
+                    decoratee_scope=message_scope(module_path=decoratee.__module__),
+                )
 
             # Add decoratee to dependency list
             function_definition = dataclasses.asdict(
@@ -86,7 +98,7 @@ class MessageRegistry:
 
         return decorator
 
-    def autodiscover(self) -> None:  # noqa: C901
+    def autodiscover(self) -> None:
         """
         Detects message registries which have been registered via the "register_*" decorator.
         """
@@ -101,6 +113,8 @@ class MessageRegistry:
         project_path = get_queuebie_app_base_path()
         logger = get_logger()
 
+        excluded_directories = get_queuebie_excluded_directories()
+
         for app_config in apps.get_app_configs():
             app_path = Path(app_config.path).resolve()
 
@@ -108,21 +122,23 @@ class MessageRegistry:
             if project_path not in app_path.parents:
                 continue
 
-            for message_type in ("commands", "events"):
-                try:
-                    for module in os.listdir(app_path / "handlers" / message_type):
-                        if module[-3:] != ".py":
-                            continue
-                        module_name = module.replace(".py", "")
-                        module_path = f"{app_config.name}.handlers.{message_type}.{module_name}"
-                        sys_module = sys.modules.get(module_path)
-                        if sys_module:
-                            importlib.reload(sys_module)
-                        else:
-                            importlib.import_module(module_path)
-                        logger.debug(f'"{module_path}" imported.')
-                except FileNotFoundError:
-                    pass
+            for directory, directory_names, file_names in os.walk(app_path):
+                # Excluded directories are pruned from the walk so their subtrees are never visited
+                directory_names[:] = sorted(name for name in directory_names if name not in excluded_directories)
+
+                current_path = Path(directory)
+                if (
+                    current_path.name not in MESSAGE_TYPE_DIRECTORY_NAMES
+                    or current_path.parent.name != HANDLERS_DIRECTORY_NAME
+                ):
+                    continue
+
+                package_path = f"{app_config.name}.{'.'.join(current_path.relative_to(app_path).parts)}"
+
+                # Importing the package covers handlers registered in its "__init__.py"
+                self._import_handler_module(module_path=package_path)
+                for file_name in sorted(name for name in file_names if name.endswith(".py") and name != "__init__.py"):
+                    self._import_handler_module(module_path=f"{package_path}.{Path(file_name).stem}")
 
         # Log to shell which functions have been detected
         logger.debug("Message autodiscovery running for commands...")
@@ -138,6 +154,18 @@ class MessageRegistry:
 
         # Update cache
         cache.set(get_queuebie_cache_key(), json.dumps({"commands": self.command_dict, "events": self.event_dict}))
+
+    def _import_handler_module(self, *, module_path: str) -> None:
+        """
+        Imports a module containing message handlers, reloading it if it was imported before.
+        """
+        sys_module = sys.modules.get(module_path)
+        if sys_module:
+            importlib.reload(sys_module)
+        else:
+            importlib.import_module(module_path)
+
+        get_logger().debug('"%s" imported.', module_path)
 
     def _load_handlers_from_cache(self) -> tuple[dict, dict]:
         """

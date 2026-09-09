@@ -1,19 +1,27 @@
 from collections.abc import Callable
 
-from django.apps import apps
+HANDLERS_DIRECTORY_NAME = "handlers"
+MESSAGES_DIRECTORY_NAME = "messages"
+SCOPE_MARKERS = (HANDLERS_DIRECTORY_NAME, MESSAGES_DIRECTORY_NAME)
 
 
-def is_part_of_app(*, function: Callable, class_type: type) -> bool:
+def message_scope(*, module_path: str) -> str:
     """
-    Checks if a class belongs to the same Django app as the given function.
+    Determines the package owning the "handlers" or "messages" directory the given module lives in.
+    Falls back to the full module path for modules outside such a directory.
     """
+    parts = module_path.split(".")
+    # The last segment is the module itself, so a module called "messages.py" is not a marker
+    marker_indices = [index for index, part in enumerate(parts[:-1]) if part in SCOPE_MARKERS]
 
-    # Get the app configurations for the class and function
-    class_app_config = apps.get_containing_app_config(class_type.__module__)
-    function_app_config = apps.get_containing_app_config(function.__module__)
+    return ".".join(parts[: marker_indices[-1]]) if marker_indices else module_path
 
-    # Check if both belong to the same app
-    return class_app_config == function_app_config
+
+def is_same_scope(*, function: Callable, class_type: type) -> bool:
+    """
+    Checks if a class and the given function belong to the same scope.
+    """
+    return message_scope(module_path=class_type.__module__) == message_scope(module_path=function.__module__)
 
 
 def unique_append_to_inner_list(*, data: dict, key: str | int, value) -> dict:

@@ -1,4 +1,5 @@
 import json
+import sys
 from pathlib import Path
 from unittest import mock
 
@@ -10,12 +11,25 @@ from queuebie import MessageRegistry
 from queuebie.exceptions import RegisterOutOfScopeCommandError
 from queuebie.settings import get_queuebie_cache_key
 from testapp.handlers.commands.testapp import MyClass
-from testapp.messages.commands.my_commands import CriticalCommand, DoSomething
+from testapp.messages.commands.messages import SendMessage
+from testapp.messages.commands.my_commands import (
+    CreateUser,
+    CriticalCommand,
+    DoSomething,
+    PersistSomething,
+    RaiseRuntimeError,
+)
 from testapp.messages.events.my_events import (
     SomethingHappened,
     SomethingHappenedThatWantsToBePersistedViaEvent,
 )
+from testapp.nested_domain.handlers.commands.nested_domain import handle_nested_command
+from testapp.nested_domain.messages.commands.nested_commands import DoSomethingNested
+from testapp.nested_domain.messages.events.nested_events import SomethingNestedHappened
 from tests.helpers.commands import DoTestThings
+
+DECOY_COMMAND_PATH = "testapp.tests.messages.commands.decoy_commands.NeverDiscovered"
+DECOY_HANDLER_MODULE = "testapp.tests.handlers.commands.decoy"
 
 
 def dummy_function(*args):
@@ -42,6 +56,7 @@ def test_message_registry_singleton_works():
     assert message_registry_1.command_dict == message_registry_2.command_dict
 
 
+@override_settings(QUEUEBIE_STRICT_MODE=False)
 def test_message_registry_register_command_regular():
     message_registry = MessageRegistry()
     decorator = message_registry.register_command(command=DoTestThings)
@@ -52,6 +67,7 @@ def test_message_registry_register_command_regular():
     assert "dummy_function" in str(message_registry.command_dict[DoTestThings.module_path()][0])
 
 
+@override_settings(QUEUEBIE_STRICT_MODE=False)
 def test_message_registry_register_command_second_function():
     message_registry = MessageRegistry()
     decorator = message_registry.register_command(command=DoTestThings)
@@ -81,9 +97,53 @@ def test_message_registry_register_command_wrong_scope():
 
     with pytest.raises(
         RegisterOutOfScopeCommandError,
-        match=r'Trying to register a command from another scope/app: "DoSomething" on handler "dummy_function".',
+        match=r'Command "DoSomething" \(scope "testapp"\) cannot be handled by '
+        r'"dummy_function" \(scope "tests.test_registry"\).',
     ):
         decorator(dummy_function)
+
+
+def test_message_registry_register_command_scope_outside_of_django_app():
+    """
+    Neither the command nor the handler lives inside an installed Django app, so their scopes are their
+    full module paths - which differ.
+    """
+    message_registry = MessageRegistry()
+    decorator = message_registry.register_command(command=DoTestThings)
+
+    with pytest.raises(
+        RegisterOutOfScopeCommandError,
+        match=r'Command "DoTestThings" \(scope "tests.helpers.commands"\) cannot be handled by '
+        r'"dummy_function" \(scope "tests.test_registry"\).',
+    ):
+        decorator(dummy_function)
+
+
+def test_message_registry_register_command_nested_scope_matches():
+    message_registry = MessageRegistry()
+    decorator = message_registry.register_command(command=DoSomethingNested)
+    decorator(handle_nested_command)
+
+    assert len(message_registry.command_dict) == 1
+    assert {
+        "module": "testapp.nested_domain.handlers.commands.nested_domain",
+        "name": "handle_nested_command",
+    } == message_registry.command_dict[DoSomethingNested.module_path()][0]
+
+
+def test_message_registry_register_command_nested_scope_differs():
+    """
+    Handler and command live in the same Django app but in different sub-packages.
+    """
+    message_registry = MessageRegistry()
+    decorator = message_registry.register_command(command=DoSomething)
+
+    with pytest.raises(
+        RegisterOutOfScopeCommandError,
+        match=r'Command "DoSomething" \(scope "testapp"\) cannot be handled by '
+        r'"handle_nested_command" \(scope "testapp.nested_domain"\).',
+    ):
+        decorator(handle_nested_command)
 
 
 def test_message_registry_register_event_regular():
@@ -125,10 +185,17 @@ def test_message_autodiscover_regular():
     message_registry = MessageRegistry()
     message_registry.autodiscover()
 
-    # Assert one command registered
-    assert len(message_registry.command_dict) == 5  # noqa: PLR2004
-    assert DoSomething.module_path() in message_registry.command_dict.keys()
-    assert CriticalCommand.module_path() in message_registry.command_dict.keys()
+    # Assert every command of the test app registered, and nothing else
+    assert set(message_registry.command_dict) == {
+        CreateUser.module_path(),
+        CriticalCommand.module_path(),
+        DoSomething.module_path(),
+        DoSomethingNested.module_path(),
+        PersistSomething.module_path(),
+        RaiseRuntimeError.module_path(),
+        # Defined in a module called "messages.py", which must not be mistaken for the scope directory
+        SendMessage.module_path(),
+    }
 
     # Assert one handler registered
     assert len(message_registry.command_dict[DoSomething.module_path()]) == 1
@@ -137,16 +204,79 @@ def test_message_autodiscover_regular():
         "name": "handle_my_command",
     } == message_registry.command_dict[DoSomething.module_path()][0]
 
-    # Assert two events registered
-    assert len(message_registry.event_dict) == 2  # noqa: PLR2004
-    assert SomethingHappened.module_path() in message_registry.event_dict.keys()
-    assert SomethingHappenedThatWantsToBePersistedViaEvent.module_path() in message_registry.event_dict.keys()
+    # Assert every event of the test app registered, and nothing else
+    assert set(message_registry.event_dict) == {
+        SomethingHappened.module_path(),
+        SomethingHappenedThatWantsToBePersistedViaEvent.module_path(),
+        SomethingNestedHappened.module_path(),
+    }
 
-    # Assert two handlers registered
+    # Assert one handler registered
     assert len(message_registry.event_dict[SomethingHappened.module_path()]) == 1
     assert {"module": "testapp.handlers.events.testapp", "name": "handle_my_event"} == message_registry.event_dict[
         SomethingHappened.module_path()
     ][0]
+
+
+def test_message_autodiscover_nested_handlers():
+    cache.clear()
+
+    message_registry = MessageRegistry()
+    message_registry.autodiscover()
+
+    assert DoSomethingNested.module_path() in message_registry.command_dict.keys()
+    assert {
+        "module": "testapp.nested_domain.handlers.commands.nested_domain",
+        "name": "handle_nested_command",
+    } == message_registry.command_dict[DoSomethingNested.module_path()][0]
+
+    assert SomethingNestedHappened.module_path() in message_registry.event_dict.keys()
+    assert {
+        "module": "testapp.nested_domain.handlers.events.nested_domain",
+        "name": "handle_nested_event",
+    } == message_registry.event_dict[SomethingNestedHappened.module_path()][0]
+
+
+def test_message_autodiscover_does_not_duplicate_packages():
+    """
+    Importing a handler package as "<package>.__init__" would create a second module object next to the package.
+    """
+    cache.clear()
+
+    message_registry = MessageRegistry()
+    message_registry.autodiscover()
+
+    assert "testapp.handlers.commands" in sys.modules
+    assert "testapp.handlers.commands.__init__" not in sys.modules
+
+
+def test_message_autodiscover_excluded_directory_not_imported():
+    cache.clear()
+
+    message_registry = MessageRegistry()
+    message_registry.autodiscover()
+
+    assert DECOY_COMMAND_PATH not in message_registry.command_dict.keys()
+    assert DECOY_HANDLER_MODULE not in sys.modules
+
+
+@override_settings(QUEUEBIE_DEFAULT_EXCLUDED_DIRECTORIES={"migrations", "__pycache__"})
+def test_message_autodiscover_default_excluded_directories_overwritable():
+    """
+    Overwriting the base list is how a project gets a directory queuebie excludes by default - here "tests" -
+    back into the auto-discovery.
+    """
+    cache.clear()
+
+    message_registry = MessageRegistry()
+    try:
+        message_registry.autodiscover()
+
+        assert DECOY_COMMAND_PATH in message_registry.command_dict.keys()
+    finally:
+        # Keep the deliberately discovered decoy out of the interpreter and the cache for the other tests
+        sys.modules.pop(DECOY_HANDLER_MODULE, None)
+        cache.clear()
 
 
 @mock.patch("queuebie.registry.get_queuebie_app_base_path", return_value=Path("/some/path"))

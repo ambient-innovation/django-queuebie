@@ -1,9 +1,14 @@
+import pytest
 from django.conf import settings
+from django.core.exceptions import ImproperlyConfigured
 from django.test import override_settings
 
 from queuebie.settings import (
+    DEFAULT_EXCLUDED_DIRECTORIES,
     get_queuebie_app_base_path,
     get_queuebie_cache_key,
+    get_queuebie_default_excluded_directories,
+    get_queuebie_excluded_directories,
     get_queuebie_logger_name,
     get_queuebie_strict_mode,
 )
@@ -43,3 +48,44 @@ def test_get_queuebie_strict_mode_is_set():
 
 def test_get_queuebie_strict_mode_default_used():
     assert get_queuebie_strict_mode() is True
+
+
+@override_settings(QUEUEBIE_EXCLUDED_DIRECTORIES={"vendor"})
+def test_get_queuebie_excluded_directories_added_to_default():
+    assert get_queuebie_excluded_directories() == DEFAULT_EXCLUDED_DIRECTORIES | {"vendor"}
+
+
+def test_get_queuebie_excluded_directories_default_used():
+    assert get_queuebie_excluded_directories() == DEFAULT_EXCLUDED_DIRECTORIES
+
+
+@override_settings(QUEUEBIE_DEFAULT_EXCLUDED_DIRECTORIES={"__pycache__"}, QUEUEBIE_EXCLUDED_DIRECTORIES={"vendor"})
+def test_get_queuebie_excluded_directories_default_overwritten():
+    assert get_queuebie_excluded_directories() == {"__pycache__", "vendor"}
+
+
+def test_get_queuebie_default_excluded_directories_default_used():
+    assert get_queuebie_default_excluded_directories() == DEFAULT_EXCLUDED_DIRECTORIES
+
+
+@override_settings(QUEUEBIE_DEFAULT_EXCLUDED_DIRECTORIES={"__pycache__"})
+def test_get_queuebie_default_excluded_directories_is_set():
+    assert get_queuebie_default_excluded_directories() == {"__pycache__"}
+
+
+@override_settings(QUEUEBIE_EXCLUDED_DIRECTORIES="tests")
+def test_get_queuebie_excluded_directories_string_not_allowed():
+    with pytest.raises(
+        ImproperlyConfigured,
+        match=r"QUEUEBIE_EXCLUDED_DIRECTORIES has to be a collection of directory names, not a string.",
+    ):
+        get_queuebie_excluded_directories()
+
+
+@override_settings(QUEUEBIE_DEFAULT_EXCLUDED_DIRECTORIES="tests")
+def test_get_queuebie_default_excluded_directories_string_not_allowed():
+    with pytest.raises(
+        ImproperlyConfigured,
+        match=r"QUEUEBIE_DEFAULT_EXCLUDED_DIRECTORIES has to be a collection of directory names, not a string.",
+    ):
+        get_queuebie_default_excluded_directories()

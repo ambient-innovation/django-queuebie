@@ -31,11 +31,76 @@ QUEUEBIE_LOGGER_NAME = "my_very_special_logger"
 
 Take care to use the same name in the logging configuration in your Django settings.
 
+## QUEUEBIE_EXCLUDED_DIRECTORIES
+
+Queuebie searches the whole subtree of every local Django app for `handlers/commands` and `handlers/events`
+directories. Directory names listed here are skipped, which keeps handler-shaped trees that are not meant to be
+registered - most notably a test suite mirroring your handler layout - out of the auto-discovery.
+
+Whatever you put here is **added to** the built-in list below, so you only name what is special about your project.
+
+```python
+QUEUEBIE_EXCLUDED_DIRECTORIES = {"vendor"}
+```
+
+A directory is skipped when any part of its path below the app root matches one of these names.
+
+## QUEUEBIE_DEFAULT_EXCLUDED_DIRECTORIES
+
+The built-in list of directory names which occur inside Django apps but never hold message handlers:
+
+```python
+QUEUEBIE_DEFAULT_EXCLUDED_DIRECTORIES = {
+    "__pycache__",
+    "fixtures",
+    "locale",
+    "media",
+    "migrations",
+    "node_modules",
+    "static",
+    "templates",
+    "tests",
+}
+```
+
+You can overwrite it, but you probably don't want to - use `QUEUEBIE_EXCLUDED_DIRECTORIES` to add names and leave
+this one alone. Overwriting is the way to get one of these directories searched after all, for instance if your
+handlers really do live under `tests/`. Note that an overwritten list is frozen: names a later queuebie release adds
+to the built-in list won't reach your project.
+
 ## QUEUEBIE_STRICT_MODE
 
-Queuebie enforces by default that commands are not used outside its domain (aka Django app) and event handlers don't
-talk to the database. If you want to skip that restriction for whatever reason, you can do so.
+Queuebie enforces by default that commands are not used outside their scope and event handlers don't talk to the
+database. If you want to skip that restriction for whatever reason, you can do so.
 
 ```python
 QUEUEBIE_STRICT_MODE = False
 ```
+
+### What a scope is
+
+The scope of a message or a handler is the package which owns the `handlers/` or `messages/` directory the module
+lives in - the last such directory in the module path, so a package legitimately called `messages` further up doesn't
+truncate the scope.
+
+| Module                                             | Scope                    |
+|----------------------------------------------------|--------------------------|
+| `apps.shipping.messages.commands.shipment`           | `apps.shipping`          |
+| `apps.shipping.handlers.commands.shipment`           | `apps.shipping`          |
+| `apps.logistics.billing.handlers.commands.invoice`   | `apps.logistics.billing` |
+
+A module which lives in neither directory has no owning package, so its full module path becomes its scope. Only a
+handler in that very module shares it; registering one from anywhere else raises `RegisterOutOfScopeCommandError` at
+import time. Keep your commands in a `messages/` directory.
+
+Put them in a module *inside* that directory - `messages/commands/orders.py` - and not in `messages/__init__.py`
+itself. A class defined there reports `apps.shipping.messages` as its module, which is indistinguishable from a
+module called `messages.py`, so the last path segment is never treated as the marker and the scope ends up as
+`apps.shipping.messages` rather than `apps.shipping`. Every handler in `apps/shipping/handlers/commands/` then fails
+the strict-mode check.
+
+A command handler may only handle commands of its own scope. For the common layout - one `handlers/` directory at the
+root of a Django app - the scope is that app, so nothing changes. If you organise a Django app into sub-packages, the
+boundary follows those sub-packages instead.
+
+Event handlers are deliberately not scope-checked: crossing scopes is what events are for.
