@@ -93,6 +93,12 @@ A module which lives in neither directory has no owning package, so its full mod
 handler in that very module shares it; registering one from anywhere else raises `RegisterOutOfScopeCommandError` at
 import time. Keep your commands in a `messages/` directory.
 
+Put them in a module *inside* that directory - `messages/commands/orders.py` - and not in `messages/__init__.py`
+itself. A class defined there reports `apps.shipping.messages` as its module, which is indistinguishable from a
+module called `messages.py`, so the last path segment is never treated as the marker and the scope ends up as
+`apps.shipping.messages` rather than `apps.shipping`. Every handler in `apps/shipping/handlers/commands/` then fails
+the strict-mode check.
+
 A command handler may only handle commands of its own scope. For the common layout - one `handlers/` directory at the
 root of a Django app - the scope is that app, so nothing changes. If you organise a Django app into sub-packages, the
 boundary follows those sub-packages instead.

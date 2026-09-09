@@ -26,6 +26,14 @@ def test_message_scope_module_named_like_marker():
     assert message_scope(module_path="apps.shipping.messages.commands.handlers") == "apps.shipping"
 
 
+def test_message_scope_marker_package_init():
+    """
+    A class in "messages/__init__.py" reports the package itself as its module, which cannot be told apart from
+    a module called "messages.py" - so the marker does not count and the scope is the full path.
+    """
+    assert message_scope(module_path="apps.shipping.messages") == "apps.shipping.messages"
+
+
 def test_message_scope_without_marker():
     assert message_scope(module_path="tests.helpers.commands") == "tests.helpers.commands"
 

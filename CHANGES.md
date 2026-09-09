@@ -1,6 +1,6 @@
 # Changelog
 
-**0.6.0** (2026-09-08)
+**0.6.0** (2026-09-09)
   * Auto-discovery now walks the whole subtree of every local Django app, so `handlers/commands` and `handlers/events`
     directories may live in sub-packages instead of only at the app root
   * Auto-discovery skips the directory names which occur inside Django apps but never hold handlers -
