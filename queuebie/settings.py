@@ -38,7 +38,7 @@ def get_queuebie_excluded_directories() -> set[str]:
     """
     Directory names which are skipped when searching for handler modules.
     """
-    excluded_directories = getattr(settings, "QUEUEBIE_EXCLUDED_DIRECTORIES", {"tests", "migrations", "__pycache__"})
+    excluded_directories = getattr(settings, "QUEUEBIE_EXCLUDED_DIRECTORIES", {"tests", "migrations"})
 
     # A string would decay into a set of single characters, silently excluding the wrong directories
     if isinstance(excluded_directories, str):

@@ -9,9 +9,10 @@ class RegisterWrongMessageTypeError(TypeError):
 
 
 class RegisterOutOfScopeCommandError(TypeError):
-    def __init__(self, *, message_name: str, decoratee_name: str):
+    def __init__(self, *, message_name: str, message_scope: str, decoratee_name: str, decoratee_scope: str):
         super().__init__(
-            f'Trying to register a command from another scope/app: "{message_name}" on handler "{decoratee_name}".'
+            f'Command "{message_name}" (scope "{message_scope}") cannot be handled by '
+            f'"{decoratee_name}" (scope "{decoratee_scope}").'
         )
 
 

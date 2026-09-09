@@ -37,11 +37,29 @@ Queuebie searches the whole subtree of every local Django app for `handlers/comm
 directories. Directory names listed here are skipped, which keeps handler-shaped trees that are not meant to be
 registered - most notably a test suite mirroring your handler layout - out of the auto-discovery.
 
-The default is `{"tests", "migrations", "__pycache__"}`. A directory is skipped when any part of its path below the
-app root matches one of these names.
+The default is `{"tests", "migrations"}`. A directory is skipped when any part of its path below the app root matches
+one of these names.
 
 ```python
-QUEUEBIE_EXCLUDED_DIRECTORIES = {"tests", "migrations", "__pycache__", "fixtures"}
+QUEUEBIE_EXCLUDED_DIRECTORIES = {"tests", "migrations", "fixtures"}
+```
+
+Note that this setting replaces the default rather than extending it, so list every name you want skipped.
+
+You only need it for directories which are Python packages. Everything else - `static/`, `node_modules/`,
+`__pycache__/`, a virtualenv - is skipped anyway, see below.
+
+### Only packages are searched
+
+Auto-discovery descends into a directory only if it contains an `__init__.py`, because nothing else can be imported.
+That keeps asset directories, virtualenvs and caches out of the walk without you having to name them.
+
+The flip side is that a `handlers/commands` directory relying on an implicit namespace package is not found. Queuebie
+logs a warning naming the directory when it sees one, so add the missing `__init__.py` files:
+
+```
+Skipping "/app/apps/shipping/handlers": it looks like a handler directory but is not a Python package.
+Add an "__init__.py" to have its handlers registered.
 ```
 
 ## QUEUEBIE_STRICT_MODE

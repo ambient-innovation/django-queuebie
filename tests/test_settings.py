@@ -54,7 +54,7 @@ def test_get_queuebie_excluded_directories_is_set():
 
 
 def test_get_queuebie_excluded_directories_default_used():
-    assert get_queuebie_excluded_directories() == {"tests", "migrations", "__pycache__"}
+    assert get_queuebie_excluded_directories() == {"tests", "migrations"}
 
 
 @override_settings(QUEUEBIE_EXCLUDED_DIRECTORIES="tests")

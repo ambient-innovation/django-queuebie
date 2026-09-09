@@ -13,9 +13,17 @@ def test_register_wrong_message_type_error():
 
 
 def test_register_command_out_of_scope_error():
-    exception = RegisterOutOfScopeCommandError(message_name="Message", decoratee_name="Decoratee")
+    exception = RegisterOutOfScopeCommandError(
+        message_name="Message",
+        message_scope="apps.warband.faction",
+        decoratee_name="Decoratee",
+        decoratee_scope="apps.warband.skirmish",
+    )
 
-    assert str(exception) == 'Trying to register a command from another scope/app: "Message" on handler "Decoratee".'
+    assert str(exception) == (
+        'Command "Message" (scope "apps.warband.faction") cannot be handled by '
+        '"Decoratee" (scope "apps.warband.skirmish").'
+    )
 
 
 def test_invalid_message_type_error():

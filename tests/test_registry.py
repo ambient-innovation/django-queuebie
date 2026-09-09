@@ -1,4 +1,5 @@
 import json
+import logging
 import sys
 from pathlib import Path
 from unittest import mock
@@ -9,7 +10,7 @@ from django.test import override_settings
 
 from queuebie import MessageRegistry
 from queuebie.exceptions import RegisterOutOfScopeCommandError
-from queuebie.settings import get_queuebie_cache_key
+from queuebie.settings import get_queuebie_cache_key, get_queuebie_logger_name
 from testapp.handlers.commands.testapp import MyClass
 from testapp.messages.commands.messages import SendMessage
 from testapp.messages.commands.my_commands import (
@@ -30,6 +31,7 @@ from tests.helpers.commands import DoTestThings
 
 DECOY_COMMAND_PATH = "testapp.tests.messages.commands.decoy_commands.NeverDiscovered"
 DECOY_HANDLER_MODULE = "testapp.tests.handlers.commands.decoy"
+ORPHAN_HANDLER_MODULE = "testapp.orphan_domain.handlers.commands.orphan"
 
 
 def dummy_function(*args):
@@ -97,7 +99,8 @@ def test_message_registry_register_command_wrong_scope():
 
     with pytest.raises(
         RegisterOutOfScopeCommandError,
-        match=r'Trying to register a command from another scope/app: "DoSomething" on handler "dummy_function".',
+        match=r'Command "DoSomething" \(scope "testapp"\) cannot be handled by '
+        r'"dummy_function" \(scope "tests.test_registry"\).',
     ):
         decorator(dummy_function)
 
@@ -112,7 +115,8 @@ def test_message_registry_register_command_scope_outside_of_django_app():
 
     with pytest.raises(
         RegisterOutOfScopeCommandError,
-        match=r'Trying to register a command from another scope/app: "DoTestThings" on handler "dummy_function".',
+        match=r'Command "DoTestThings" \(scope "tests.helpers.commands"\) cannot be handled by '
+        r'"dummy_function" \(scope "tests.test_registry"\).',
     ):
         decorator(dummy_function)
 
@@ -138,7 +142,8 @@ def test_message_registry_register_command_nested_scope_differs():
 
     with pytest.raises(
         RegisterOutOfScopeCommandError,
-        match=r'Trying to register a command from another scope/app: "DoSomething" on handler "handle_nested_command".',
+        match=r'Command "DoSomething" \(scope "testapp"\) cannot be handled by '
+        r'"handle_nested_command" \(scope "testapp.nested_domain"\).',
     ):
         decorator(handle_nested_command)
 
@@ -255,6 +260,24 @@ def test_message_autodiscover_excluded_directory_not_imported():
 
     assert DECOY_COMMAND_PATH not in message_registry.command_dict.keys()
     assert DECOY_HANDLER_MODULE not in sys.modules
+
+
+def test_message_autodiscover_non_package_handler_directory_skipped(caplog):
+    """
+    A "handlers/commands" directory which is no Python package cannot be imported, so it is skipped - loudly,
+    because handlers nobody registers are worse than a startup warning.
+    """
+    cache.clear()
+
+    message_registry = MessageRegistry()
+    with caplog.at_level(logging.WARNING, logger=get_queuebie_logger_name()):
+        message_registry.autodiscover()
+
+    assert ORPHAN_HANDLER_MODULE not in sys.modules
+    assert str(Path("testapp") / "orphan_domain" / "handlers") in caplog.text, (
+        "The skipped handler directory has to be named in the warning."
+    )
+    assert "is not a Python package" in caplog.text
 
 
 @override_settings(QUEUEBIE_EXCLUDED_DIRECTORIES={"migrations", "__pycache__"})
