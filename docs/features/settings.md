@@ -37,30 +37,35 @@ Queuebie searches the whole subtree of every local Django app for `handlers/comm
 directories. Directory names listed here are skipped, which keeps handler-shaped trees that are not meant to be
 registered - most notably a test suite mirroring your handler layout - out of the auto-discovery.
 
-The default is `{"tests", "migrations"}`. A directory is skipped when any part of its path below the app root matches
-one of these names.
+Whatever you put here is **added to** the built-in list below, so you only name what is special about your project.
 
 ```python
-QUEUEBIE_EXCLUDED_DIRECTORIES = {"tests", "migrations", "fixtures"}
+QUEUEBIE_EXCLUDED_DIRECTORIES = {"vendor"}
 ```
 
-Note that this setting replaces the default rather than extending it, so list every name you want skipped.
+A directory is skipped when any part of its path below the app root matches one of these names.
 
-You only need it for directories which are Python packages. Everything else - `static/`, `node_modules/`,
-`__pycache__/`, a virtualenv - is skipped anyway, see below.
+## QUEUEBIE_DEFAULT_EXCLUDED_DIRECTORIES
 
-### Only packages are searched
+The built-in list of directory names which occur inside Django apps but never hold message handlers:
 
-Auto-discovery descends into a directory only if it contains an `__init__.py`, because nothing else can be imported.
-That keeps asset directories, virtualenvs and caches out of the walk without you having to name them.
-
-The flip side is that a `handlers/commands` directory relying on an implicit namespace package is not found. Queuebie
-logs a warning naming the directory when it sees one, so add the missing `__init__.py` files:
-
+```python
+QUEUEBIE_DEFAULT_EXCLUDED_DIRECTORIES = {
+    "__pycache__",
+    "fixtures",
+    "locale",
+    "media",
+    "migrations",
+    "node_modules",
+    "static",
+    "templates",
+    "tests",
+}
 ```
-Skipping "/app/apps/shipping/handlers": it looks like a handler directory but is not a Python package.
-Add an "__init__.py" to have its handlers registered.
-```
+
+You can overwrite it, but you probably don't want to - use `QUEUEBIE_EXCLUDED_DIRECTORIES` to add names and leave
+this one alone. Overwriting is the way to get one of these directories searched after all, for instance if your
+handlers really do live under `tests/`.
 
 ## QUEUEBIE_STRICT_MODE
 

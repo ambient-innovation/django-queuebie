@@ -123,13 +123,10 @@ class MessageRegistry:
                 continue
 
             for directory, directory_names, file_names in os.walk(app_path):
-                current_path = Path(directory)
-                directory_names[:] = self._walkable_directories(
-                    path=current_path,
-                    directory_names=directory_names,
-                    excluded_directories=excluded_directories,
-                )
+                # Excluded directories are pruned from the walk so their subtrees are never visited
+                directory_names[:] = sorted(name for name in directory_names if name not in excluded_directories)
 
+                current_path = Path(directory)
                 if (
                     current_path.name not in MESSAGE_TYPE_DIRECTORY_NAMES
                     or current_path.parent.name != HANDLERS_DIRECTORY_NAME
@@ -157,43 +154,6 @@ class MessageRegistry:
 
         # Update cache
         cache.set(get_queuebie_cache_key(), json.dumps({"commands": self.command_dict, "events": self.event_dict}))
-
-    def _walkable_directories(
-        self, *, path: Path, directory_names: list[str], excluded_directories: set[str]
-    ) -> list[str]:
-        """
-        Filters the sub-directories of "path" down to the ones auto-discovery has to descend into.
-
-        Only packages can hold importable handlers, so everything else is dropped and its subtree is never
-        visited. A directory which looks like it was meant to hold handlers is reported, since dropping it
-        silently would hide handlers that never get registered.
-        """
-        walkable_directories = []
-
-        for directory_name in sorted(directory_names):
-            if directory_name in excluded_directories:
-                continue
-
-            directory_path = path / directory_name
-            if (directory_path / "__init__.py").is_file():
-                walkable_directories.append(directory_name)
-            elif self._holds_handlers(path=directory_path):
-                get_logger().warning(
-                    'Skipping "%s": it looks like a handler directory but is not a Python package. '
-                    'Add an "__init__.py" to have its handlers registered.',
-                    directory_path,
-                )
-
-        return walkable_directories
-
-    def _holds_handlers(self, *, path: Path) -> bool:
-        """
-        Tells whether the given directory is, or contains, a message handler directory.
-        """
-        if path.name == HANDLERS_DIRECTORY_NAME:
-            return any((path / directory_name).is_dir() for directory_name in MESSAGE_TYPE_DIRECTORY_NAMES)
-
-        return path.name in MESSAGE_TYPE_DIRECTORY_NAMES and path.parent.name == HANDLERS_DIRECTORY_NAME
 
     def _import_handler_module(self, *, module_path: str) -> None:
         """

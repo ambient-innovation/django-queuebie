@@ -33,6 +33,6 @@ def test_invalid_message_type_error():
 
 
 def test_invalid_excluded_directories_error():
-    exception = InvalidExcludedDirectoriesError()
+    exception = InvalidExcludedDirectoriesError(setting_name="MY_SETTING")
 
-    assert str(exception) == "QUEUEBIE_EXCLUDED_DIRECTORIES has to be a collection of directory names, not a string."
+    assert str(exception) == "MY_SETTING has to be a collection of directory names, not a string."

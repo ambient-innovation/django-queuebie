@@ -1,5 +1,4 @@
 import json
-import logging
 import sys
 from pathlib import Path
 from unittest import mock
@@ -10,7 +9,7 @@ from django.test import override_settings
 
 from queuebie import MessageRegistry
 from queuebie.exceptions import RegisterOutOfScopeCommandError
-from queuebie.settings import get_queuebie_cache_key, get_queuebie_logger_name
+from queuebie.settings import get_queuebie_cache_key
 from testapp.handlers.commands.testapp import MyClass
 from testapp.messages.commands.messages import SendMessage
 from testapp.messages.commands.my_commands import (
@@ -31,7 +30,6 @@ from tests.helpers.commands import DoTestThings
 
 DECOY_COMMAND_PATH = "testapp.tests.messages.commands.decoy_commands.NeverDiscovered"
 DECOY_HANDLER_MODULE = "testapp.tests.handlers.commands.decoy"
-ORPHAN_HANDLER_MODULE = "testapp.orphan_domain.handlers.commands.orphan"
 
 
 def dummy_function(*args):
@@ -262,26 +260,12 @@ def test_message_autodiscover_excluded_directory_not_imported():
     assert DECOY_HANDLER_MODULE not in sys.modules
 
 
-def test_message_autodiscover_non_package_handler_directory_skipped(caplog):
+@override_settings(QUEUEBIE_DEFAULT_EXCLUDED_DIRECTORIES={"migrations", "__pycache__"})
+def test_message_autodiscover_default_excluded_directories_overwritable():
     """
-    A "handlers/commands" directory which is no Python package cannot be imported, so it is skipped - loudly,
-    because handlers nobody registers are worse than a startup warning.
+    Overwriting the base list is how a project gets a directory queuebie excludes by default - here "tests" -
+    back into the auto-discovery.
     """
-    cache.clear()
-
-    message_registry = MessageRegistry()
-    with caplog.at_level(logging.WARNING, logger=get_queuebie_logger_name()):
-        message_registry.autodiscover()
-
-    assert ORPHAN_HANDLER_MODULE not in sys.modules
-    assert str(Path("testapp") / "orphan_domain" / "handlers") in caplog.text, (
-        "The skipped handler directory has to be named in the warning."
-    )
-    assert "is not a Python package" in caplog.text
-
-
-@override_settings(QUEUEBIE_EXCLUDED_DIRECTORIES={"migrations", "__pycache__"})
-def test_message_autodiscover_excluded_directories_configurable():
     cache.clear()
 
     message_registry = MessageRegistry()

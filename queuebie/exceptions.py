@@ -22,6 +22,9 @@ class InvalidMessageTypeError(TypeError):
 
 
 class InvalidExcludedDirectoriesError(ImproperlyConfigured):
-    # "args" is swallowed so that unpickling, which replays them through __init__, keeps working
-    def __init__(self, *args):
-        super().__init__("QUEUEBIE_EXCLUDED_DIRECTORIES has to be a collection of directory names, not a string.")
+    def __init__(self, *args, setting_name: str | None = None):
+        # Unpickling replays the rendered message through "args", so that one takes precedence
+        if not args:
+            args = (f"{setting_name} has to be a collection of directory names, not a string.",)
+
+        super().__init__(*args)

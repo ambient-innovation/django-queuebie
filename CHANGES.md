@@ -3,19 +3,20 @@
 **0.6.0** (2026-09-08)
   * Auto-discovery now walks the whole subtree of every local Django app, so `handlers/commands` and `handlers/events`
     directories may live in sub-packages instead of only at the app root
-  * Added the setting `QUEUEBIE_EXCLUDED_DIRECTORIES` (default `{"tests", "migrations"}`) to keep handler-shaped
-    directories out of the auto-discovery. It replaces the default rather than extending it
-  * Auto-discovery descends only into directories holding an `__init__.py`, so asset directories, virtualenvs and
-    `__pycache__` stay out of the walk without being named. A `handlers/commands` directory relying on an implicit
-    namespace package is therefore no longer found - queuebie logs a warning naming the directory when it sees one
+  * Auto-discovery skips the directory names which occur inside Django apps but never hold handlers -
+    `__pycache__`, `fixtures`, `locale`, `media`, `migrations`, `node_modules`, `static`, `templates` and `tests`.
+    `QUEUEBIE_DEFAULT_EXCLUDED_DIRECTORIES` holds that list and can be overwritten
+  * Added the setting `QUEUEBIE_EXCLUDED_DIRECTORIES` for project-specific directory names. It is added to the list
+    above instead of replacing it
   * **Breaking change:** Strict mode compares the package owning the `handlers/` or `messages/` directory instead of
     the Django app. Nested layouts get the boundary enforced they always described, and two cases which used to pass
     the check unconditionally are now validated:
     * handlers and commands living outside any installed Django app
     * commands living inside an app but outside a `messages/` directory - a command in, say,
       `my_app/domain/orders/commands.py` has no owning `messages/` directory, so its scope is its full module path,
-      which no handler can share. Registering a handler for it raises `RegisterOutOfScopeCommandError` at import
-      time. Move such commands into a `messages/` directory or turn strict mode off
+      which only a handler in that same module can share. Registering a handler from anywhere else raises
+      `RegisterOutOfScopeCommandError` at import time. Move such commands into a `messages/` directory or turn
+      strict mode off
   * **Breaking change:** Replaced `queuebie.utils.is_part_of_app()` with `queuebie.utils.is_same_scope()` and
     `queuebie.utils.message_scope()`
   * **Breaking change:** `RegisterOutOfScopeCommandError` now names both scopes instead of only the command and the
