@@ -17,7 +17,9 @@ from queuebie.settings import (
     get_queuebie_excluded_directories,
     get_queuebie_strict_mode,
 )
-from queuebie.utils import is_same_scope, unique_append_to_inner_list
+from queuebie.utils import HANDLERS_DIRECTORY_NAME, is_same_scope, unique_append_to_inner_list
+
+MESSAGE_TYPE_DIRECTORY_NAMES = ("commands", "events")
 
 
 @dataclasses.dataclass(kw_only=True)
@@ -120,17 +122,18 @@ class MessageRegistry:
                 directory_names[:] = sorted(name for name in directory_names if name not in excluded_directories)
 
                 current_path = Path(directory)
-                if current_path.name not in ("commands", "events") or current_path.parent.name != "handlers":
+                if (
+                    current_path.name not in MESSAGE_TYPE_DIRECTORY_NAMES
+                    or current_path.parent.name != HANDLERS_DIRECTORY_NAME
+                ):
                     continue
 
                 package_path = f"{app_config.name}.{'.'.join(current_path.relative_to(app_path).parts)}"
 
                 # Importing the package covers handlers registered in its "__init__.py"
                 self._import_handler_module(module_path=package_path)
-                for file_name in sorted(file_names):
-                    if not file_name.endswith(".py") or file_name == "__init__.py":
-                        continue
-                    self._import_handler_module(module_path=f"{package_path}.{file_name[:-3]}")
+                for file_name in sorted(name for name in file_names if name.endswith(".py") and name != "__init__.py"):
+                    self._import_handler_module(module_path=f"{package_path}.{Path(file_name).stem}")
 
         # Log to shell which functions have been detected
         logger.debug("Message autodiscovery running for commands...")
@@ -157,7 +160,7 @@ class MessageRegistry:
         else:
             importlib.import_module(module_path)
 
-        get_logger().debug(f'"{module_path}" imported.')
+        get_logger().debug('"%s" imported.', module_path)
 
     def _load_handlers_from_cache(self) -> tuple[dict, dict]:
         """

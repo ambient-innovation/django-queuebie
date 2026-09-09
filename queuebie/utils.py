@@ -1,6 +1,8 @@
 from collections.abc import Callable
 
-SCOPE_MARKERS = ("handlers", "messages")
+HANDLERS_DIRECTORY_NAME = "handlers"
+MESSAGES_DIRECTORY_NAME = "messages"
+SCOPE_MARKERS = (HANDLERS_DIRECTORY_NAME, MESSAGES_DIRECTORY_NAME)
 
 
 def message_scope(*, module_path: str) -> str:
@@ -10,9 +12,9 @@ def message_scope(*, module_path: str) -> str:
     """
     parts = module_path.split(".")
     # The last segment is the module itself, so a module called "messages.py" is not a marker
-    markers = [index for index, part in enumerate(parts[:-1]) if part in SCOPE_MARKERS]
+    marker_indices = [index for index, part in enumerate(parts[:-1]) if part in SCOPE_MARKERS]
 
-    return ".".join(parts[: markers[-1]]) if markers else module_path
+    return ".".join(parts[: marker_indices[-1]]) if marker_indices else module_path
 
 
 def is_same_scope(*, function: Callable, class_type: type) -> bool:

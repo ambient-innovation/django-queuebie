@@ -1,3 +1,6 @@
+from django.core.exceptions import ImproperlyConfigured
+
+
 class RegisterWrongMessageTypeError(TypeError):
     def __init__(self, *, message_name: str, decoratee_name: str):
         super().__init__(
@@ -15,3 +18,9 @@ class RegisterOutOfScopeCommandError(TypeError):
 class InvalidMessageTypeError(TypeError):
     def __init__(self, *, class_name: str):
         super().__init__(f'"{class_name}" is not an Event or Command')
+
+
+class InvalidExcludedDirectoriesError(ImproperlyConfigured):
+    # "args" is swallowed so that unpickling, which replays them through __init__, keeps working
+    def __init__(self, *args):
+        super().__init__("QUEUEBIE_EXCLUDED_DIRECTORIES has to be a collection of directory names, not a string.")

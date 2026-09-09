@@ -1,7 +1,8 @@
 from pathlib import Path
 
 from django.conf import settings
-from django.core.exceptions import ImproperlyConfigured
+
+from queuebie.exceptions import InvalidExcludedDirectoriesError
 
 
 def get_queuebie_app_base_path() -> Path | str:
@@ -41,8 +42,6 @@ def get_queuebie_excluded_directories() -> set[str]:
 
     # A string would decay into a set of single characters, silently excluding the wrong directories
     if isinstance(excluded_directories, str):
-        raise ImproperlyConfigured(  # noqa: TRY003
-            "QUEUEBIE_EXCLUDED_DIRECTORIES has to be a collection of directory names, not a string."
-        )
+        raise InvalidExcludedDirectoriesError
 
     return set(excluded_directories)

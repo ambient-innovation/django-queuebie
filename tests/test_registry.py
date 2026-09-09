@@ -11,7 +11,14 @@ from queuebie import MessageRegistry
 from queuebie.exceptions import RegisterOutOfScopeCommandError
 from queuebie.settings import get_queuebie_cache_key
 from testapp.handlers.commands.testapp import MyClass
-from testapp.messages.commands.my_commands import CriticalCommand, DoSomething
+from testapp.messages.commands.messages import SendMessage
+from testapp.messages.commands.my_commands import (
+    CreateUser,
+    CriticalCommand,
+    DoSomething,
+    PersistSomething,
+    RaiseRuntimeError,
+)
 from testapp.messages.events.my_events import (
     SomethingHappened,
     SomethingHappenedThatWantsToBePersistedViaEvent,
@@ -175,10 +182,17 @@ def test_message_autodiscover_regular():
     message_registry = MessageRegistry()
     message_registry.autodiscover()
 
-    # Assert one command registered
-    assert len(message_registry.command_dict) == 7  # noqa: PLR2004
-    assert DoSomething.module_path() in message_registry.command_dict.keys()
-    assert CriticalCommand.module_path() in message_registry.command_dict.keys()
+    # Assert every command of the test app registered, and nothing else
+    assert set(message_registry.command_dict) == {
+        CreateUser.module_path(),
+        CriticalCommand.module_path(),
+        DoSomething.module_path(),
+        DoSomethingNested.module_path(),
+        PersistSomething.module_path(),
+        RaiseRuntimeError.module_path(),
+        # Defined in a module called "messages.py", which must not be mistaken for the scope directory
+        SendMessage.module_path(),
+    }
 
     # Assert one handler registered
     assert len(message_registry.command_dict[DoSomething.module_path()]) == 1
@@ -187,12 +201,14 @@ def test_message_autodiscover_regular():
         "name": "handle_my_command",
     } == message_registry.command_dict[DoSomething.module_path()][0]
 
-    # Assert three events registered
-    assert len(message_registry.event_dict) == 3  # noqa: PLR2004
-    assert SomethingHappened.module_path() in message_registry.event_dict.keys()
-    assert SomethingHappenedThatWantsToBePersistedViaEvent.module_path() in message_registry.event_dict.keys()
+    # Assert every event of the test app registered, and nothing else
+    assert set(message_registry.event_dict) == {
+        SomethingHappened.module_path(),
+        SomethingHappenedThatWantsToBePersistedViaEvent.module_path(),
+        SomethingNestedHappened.module_path(),
+    }
 
-    # Assert two handlers registered
+    # Assert one handler registered
     assert len(message_registry.event_dict[SomethingHappened.module_path()]) == 1
     assert {"module": "testapp.handlers.events.testapp", "name": "handle_my_event"} == message_registry.event_dict[
         SomethingHappened.module_path()

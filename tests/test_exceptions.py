@@ -1,4 +1,5 @@
 from queuebie.exceptions import (
+    InvalidExcludedDirectoriesError,
     InvalidMessageTypeError,
     RegisterOutOfScopeCommandError,
     RegisterWrongMessageTypeError,
@@ -21,3 +22,9 @@ def test_invalid_message_type_error():
     exception = InvalidMessageTypeError(class_name="MyClass")
 
     assert str(exception) == '"MyClass" is not an Event or Command'
+
+
+def test_invalid_excluded_directories_error():
+    exception = InvalidExcludedDirectoriesError()
+
+    assert str(exception) == "QUEUEBIE_EXCLUDED_DIRECTORIES has to be a collection of directory names, not a string."
