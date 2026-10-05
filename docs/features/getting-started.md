@@ -102,3 +102,19 @@ handle_message(
     )
 )
 ```
+
+`handle_message()` returns every message it handled, in the order they were processed: the message(s) you passed in,
+followed by all commands and events the handlers returned along the way. Use it to find out what your command led to,
+for example when a command handler can decide to do nothing and return `None`:
+
+```python
+handled = handle_message(BuyProduct(...))
+
+if any(isinstance(message, ProductBought) for message in handled):
+    messages.success(request, "Thank you for your purchase.")
+else:
+    messages.error(request, "The product could not be bought.")
+```
+
+The returned list tells you which handlers ran, not that their changes are committed. If you call `handle_message()`
+inside an outer `transaction.atomic()` block, that outer transaction can still roll everything back.

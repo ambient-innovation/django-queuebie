@@ -1,5 +1,11 @@
 # Changelog
 
+**0.7.0** (2026-10-05)
+  * `handle_message()` returns the handled messages in the order they were processed - the initial message(s)
+    followed by every command and event raised along the way - so the caller can tell whether its command led to the
+    expected event
+  * `handle_message()` no longer empties a list passed in by the caller
+
 **0.6.0** (2026-09-09)
   * Auto-discovery now walks the whole subtree of every local Django app, so `handlers/commands` and `handlers/events`
     directories may live in sub-packages instead of only at the app root

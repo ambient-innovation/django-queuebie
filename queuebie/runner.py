@@ -11,8 +11,16 @@ from queuebie.messages import Command, Event, Message
 from queuebie.settings import get_queuebie_strict_mode
 
 
-def handle_message(messages: Message | list[Message]) -> None:
-    queue: list[Message] = messages if isinstance(messages, list) else [messages]
+def handle_message(messages: Message | list[Message]) -> list[Message]:
+    """
+    Process the given message(s) and every message their handlers return, until the queue is drained.
+
+    Returns all handled messages in the order they were processed - the initial message(s) first, followed by
+    everything raised along the way. The caller can inspect it to learn what its command led to, e.g. whether a
+    handler returned an event or bailed out with `None`.
+    """
+    # Copy the input, so draining the queue doesn't empty the caller's list
+    queue: list[Message] = list(messages) if isinstance(messages, list) else [messages]
 
     for message in queue:
         if not isinstance(message, (Command, Event)):
@@ -21,9 +29,11 @@ def handle_message(messages: Message | list[Message]) -> None:
     # Run auto-registry
     message_registry.autodiscover()
 
+    handled: list[Message] = []
     with transaction.atomic():
         while queue:
             message = queue.pop(0)
+            handled.append(message)
             if isinstance(message, Command):
                 handler_list = message_registry.command_dict.get(message.module_path(), [])
                 block_db_access = False
@@ -33,6 +43,8 @@ def handle_message(messages: Message | list[Message]) -> None:
 
             new_messages = _process_message(handler_list=handler_list, message=message, block_db_access=block_db_access)
             queue.extend(new_messages)
+
+    return handled
 
 
 def _process_message(*, handler_list: list, message: [Command, Event], block_db_access: bool) -> list[Message]:
