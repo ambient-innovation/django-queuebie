@@ -136,3 +136,47 @@ def test_handle_message_atomic_works(*args):
         handle_message([CreateUser(username="username"), RaiseRuntimeError(error_msg="Something is broken.")])
 
     assert User.objects.filter(username="username").exists() is False
+
+
+@pytest.mark.django_db
+def test_handle_message_returns_handled_messages_in_order():
+    command = DoSomething(my_var=1)
+
+    handled = handle_message(messages=command)
+
+    assert len(handled) == 2  # noqa: PLR2004
+    assert handled[0] is command
+    assert isinstance(handled[1], SomethingHappened)
+    assert handled[1].other_var == 2  # noqa: PLR2004
+
+
+@pytest.mark.django_db
+def test_handle_message_returns_only_initial_message_if_handler_returns_none():
+    command = CriticalCommand(my_var=1)
+
+    handled = handle_message(messages=command)
+
+    assert handled == [command]
+
+
+@pytest.mark.django_db
+def test_handle_message_returns_all_initial_messages_of_list():
+    command = DoSomething(my_var=1)
+    event = SomethingHappened(other_var=5)
+
+    handled = handle_message(messages=[command, event])
+
+    assert handled[0] is command
+    assert handled[1] is event
+    assert isinstance(handled[2], SomethingHappened)
+    assert handled[2].other_var == 2  # noqa: PLR2004
+    assert len(handled) == 3  # noqa: PLR2004
+
+
+@pytest.mark.django_db
+def test_handle_message_does_not_empty_passed_list():
+    message_list = [CriticalCommand(my_var=1)]
+
+    handle_message(messages=message_list)
+
+    assert len(message_list) == 1
