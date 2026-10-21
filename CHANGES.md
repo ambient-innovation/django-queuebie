@@ -4,6 +4,7 @@
   * Updated the linting and CI setup to the current ambient-package-update template (ruff 0.17.1, `actions/checkout` v7, `actions/setup-python` v7)
   * Fixed the Sphinx configuration for sphinx-rtd-theme 3, removing the documentation build warnings
   * Fixed broken links in the pre-commit section of `CONTRIBUTING.md`
+  * Stopped committing `uv.lock`, since the package is a library and the lockfile never reaches its users
 
 **0.7.0** (2026-10-05)
   * `handle_message()` returns the handled messages in the order they were processed - the initial message(s)
