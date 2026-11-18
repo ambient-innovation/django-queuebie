@@ -1,6 +1,6 @@
 """A simple and synchronous message queue for commands and events for Django"""
 
-__version__ = "0.8.0"
+__version__ = "0.8.1"
 
 from queuebie.registry import MessageRegistry
 
